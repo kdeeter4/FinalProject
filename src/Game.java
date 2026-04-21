@@ -12,12 +12,15 @@ public class Game implements MouseListener, MouseMotionListener {
 
     public Game() {
         window = new GameView(this);
-        state = 0;
+        state = -1;
 
         this.window.addMouseListener(this);
         this.window.addMouseMotionListener(this);
     }
 
+    public double getState() {
+        return state;
+    }
 
     public void mouseMoved(MouseEvent e) {
     }
@@ -26,6 +29,28 @@ public class Game implements MouseListener, MouseMotionListener {
     public void mouseClicked(MouseEvent e) {}
 
     public void mousePressed(MouseEvent e) {
+        int x = e.getX();
+        // Adjust y for title bar inset so logical coords match what was drawn
+        int y = e.getY() - window.getInsets().top;
+
+        if (state == -1) {
+            // Check X button on instruction overlay
+            if (x >= GameView.CLOSE_BTN_X && x <= GameView.CLOSE_BTN_X + GameView.CLOSE_BTN_SIZE
+                    && y >= GameView.CLOSE_BTN_Y && y <= GameView.CLOSE_BTN_Y + GameView.CLOSE_BTN_SIZE) {
+                state = 0;
+                window.repaint();
+            }
+        } else if (state == 0) {
+            // Check ? button (circle hit test)
+            int dx = x - GameView.HELP_BTN_CX;
+            int dy = y - GameView.HELP_BTN_CY;
+            // Checks if in circle
+            if (Math.sqrt(dx * dx + dy * dy) <= GameView.HELP_BTN_RADIUS) {
+                state = -1;
+                window.repaint();
+            }
+            // Level 1 box — no action yet
+        }
     }
 
     public void mouseReleased(MouseEvent e) {}
@@ -36,4 +61,3 @@ public class Game implements MouseListener, MouseMotionListener {
         Game g = new Game();
     }
 }
-
