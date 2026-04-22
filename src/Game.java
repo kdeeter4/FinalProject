@@ -13,14 +13,17 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
     private double state;
     private int levelsCompleted;
     private Ball b;
+    private static final double STATE_INFO = -1;
+    private static final double STATE_MENU = 0;
+    private static final double STATE_LEVEL = 1;
 
     public Game() {
 
-
-        window = new GameView(this);
-        state = -1;
-
         b = new Ball (50.0, 50.0);
+        window = new GameView(this);
+        state = STATE_INFO;
+
+
 
         this.window.addMouseListener(this);
         this.window.addMouseMotionListener(this);
@@ -78,8 +81,10 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        b.tickStep();
-        window.repaint();
+        if (state < 1) {
+            b.tickStep();
+            window.repaint();
+        }
     }
 }
 

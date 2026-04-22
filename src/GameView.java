@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import javax.swing.*;
 
 public class GameView extends JFrame {
@@ -29,25 +30,56 @@ public class GameView extends JFrame {
     public static final int CLOSE_BTN_SIZE = 30;
 
     private Game backend;
+    private BufferedImage backBuffer;
 
     public GameView(Game backend) {
         this.backend = backend;
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         this.setTitle("Game");
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setResizable(false);
         this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        setIgnoreRepaint(true);
         this.setVisible(true);
+
+        createBuffer();
+    }
+
+    private void createBuffer() {
+        int w = getWidth();
+        int h = getHeight();
+        if (w > 0 && h > 0) {
+            backBuffer = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        }
     }
 
 
     @Override
     public void paint(Graphics g) {
-        backend.getBall().draw(g);
-        int dy = getInsets().top; // offset so logical coords skip the title bar
+        if (backBuffer == null || backBuffer.getWidth() != getWidth() || backBuffer.getHeight() != getHeight()) {
+            createBuffer();
+        }
+
+        Graphics2D g2 = backBuffer.createGraphics();
+
+        g2.setColor(getBackground());
+        g2.fillRect(0, 0, getWidth(), getHeight());
+
+        renderGame(g2);
+
+        g.drawImage(backBuffer, 0, 0, null);
+        g2.dispose();
+    }
+
+    private void renderGame(Graphics2D g) {
+        int dy = getInsets().top;
 
         drawLevelSelect(g, dy);
 
-        if (backend.getState() == -1) {
+        if (backend.getState() == Game.STATE_INFO) {
             drawInstructionOverlay(g, dy);
+        } else if (backend.isInLevel()) {
+            backend.getBall().draw(g);
         }
     }
 
