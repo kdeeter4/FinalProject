@@ -1,21 +1,28 @@
+import java.awt.event.*;
+import javax.swing.Timer;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;;
+import java.awt.event.MouseMotionListener;
 
-public class Game implements MouseListener, MouseMotionListener {
+
+public class Game implements MouseListener, MouseMotionListener, ActionListener {
 
     public final double[] NOTES = {261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25};
 
     private GameView window;
     private double state;
     private int levelsCompleted;
+    private Ball b;
 
     public Game() {
         window = new GameView(this);
         state = -1;
 
+        b = new Ball (50.0, 50.0);
+
         this.window.addMouseListener(this);
         this.window.addMouseMotionListener(this);
+        Timer tick = new Timer(16, this);
     }
 
     public double getState() {
@@ -59,5 +66,15 @@ public class Game implements MouseListener, MouseMotionListener {
 
     public static void main(String[] args) {
         Game g = new Game();
+    }
+
+    public Ball getBall() {
+        return b;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        b.tickStep();
+        window.repaint();
     }
 }
