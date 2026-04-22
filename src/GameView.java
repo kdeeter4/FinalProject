@@ -39,6 +39,7 @@ public class GameView extends JFrame {
     }
 
 
+    @Override
     public void paint(Graphics g) {
         backend.getBall().draw(g);
         int dy = getInsets().top; // offset so logical coords skip the title bar

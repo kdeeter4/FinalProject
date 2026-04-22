@@ -15,6 +15,8 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
     private Ball b;
 
     public Game() {
+
+
         window = new GameView(this);
         state = -1;
 
@@ -22,7 +24,9 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
 
         this.window.addMouseListener(this);
         this.window.addMouseMotionListener(this);
-        Timer tick = new Timer(16, this);
+
+        Timer tick = new Timer(50, this);
+        tick.start();
     }
 
     public double getState() {
@@ -78,3 +82,4 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
         window.repaint();
     }
 }
+
