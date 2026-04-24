@@ -25,10 +25,10 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
     public Game() {
         b = new Ball (50.0, 50.0);
         window = new GameView(this);
-        state = STATE_INFO;
+        state = -1;
 
-        window.addMouseListener(this);
-        window.addMouseMotionListener(this);
+        this.window.getPanel().addMouseListener(this);
+        this.window.getPanel().addMouseMotionListener(this);
 
         Timer tick = new Timer(16, this);
         tick.start();
@@ -51,7 +51,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
     public void mousePressed(MouseEvent e) {
         int x = e.getX();
         // Adjust y for title bar inset so logical coords match what was drawn
-        int y = e.getY() - window.getInsets().top;
+        int y = e.getY();
 
         if (state == STATE_INFO) {
             // Check X button on instruction overlay

@@ -1,5 +1,5 @@
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.event.*;
 import javax.swing.*;
 
 public class GameView extends JFrame {
@@ -30,38 +30,39 @@ public class GameView extends JFrame {
     public static final int CLOSE_BTN_SIZE = 30;
 
     private Game backend;
+    private GamePanel panel;
 
     public GameView(Game backend) {
         this.backend = backend;
 
         this.setTitle("Game");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         this.setResizable(false);
-        ((JComponent) getContentPane()).setOpaque(false); // ← moved up
+
+        panel = new GamePanel();
+        panel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
+        this.setContentPane(panel);   // panel becomes the drawable area
+        this.pack();                  // sizes the frame to fit the panel
+        this.setLocationRelativeTo(null); // center on screen (optional)
         this.setVisible(true);
-
-        System.out.println("GameView ctor running");
     }
 
-
-    @Override
-    public void paint(Graphics g) {
-        renderGame((Graphics2D) g);
+    // Expose the panel so Game can attach mouse listeners directly to it.
+    public JPanel getPanel() {
+        return panel;
     }
 
-    private void renderGame(Graphics2D g) {
-        int dy = getInsets().top;
+    private class GamePanel extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);   // clears the panel — DO NOT REMOVE
 
-        drawLevelSelect(g, dy);
+            drawLevelSelect(g, 0);     // dy is 0 — no title bar inside a panel
 
-        if (backend.getState() == Game.STATE_INFO) {
-            drawInstructionOverlay(g, dy);
-        } else if (backend.getState() >= 1.0) {
-            backend.getBall().draw(g);
+            if (backend.getState() == -1) {
+                drawInstructionOverlay(g, 0);
+            }
         }
-        g.setColor(Color.RED);
-        g.fillRect(100, 100, 100, 100);
     }
 
     private void drawLevelSelect(Graphics g, int dy) {
