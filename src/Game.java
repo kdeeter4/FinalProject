@@ -65,12 +65,20 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
             // Check ? button (circle hit test)
             int dx = x - GameView.HELP_BTN_CX;
             int dy = y - GameView.HELP_BTN_CY;
-            // Checks if in circle
+
             if (Math.sqrt(dx * dx + dy * dy) <= GameView.HELP_BTN_RADIUS) {
                 state = STATE_INFO;
                 window.repaint();
+                return;
             }
-            // Level 1 box — no action yet
+
+            // Level 1 button
+            if (x >= GameView.LEVEL1_X && x <= GameView.LEVEL1_X + GameView.LEVEL1_W
+                    && y >= GameView.LEVEL1_Y && y <= GameView.LEVEL1_Y + GameView.LEVEL1_H) {
+                state = STATE_LEVEL1;
+                window.repaint();
+                return;
+            }
         }
     }
 

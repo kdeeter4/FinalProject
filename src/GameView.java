@@ -55,12 +55,16 @@ public class GameView extends JFrame {
     private class GamePanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
-            super.paintComponent(g);   // clears the panel — DO NOT REMOVE
+            super.paintComponent(g);
 
-            drawLevelSelect(g, 0);     // dy is 0 — no title bar inside a panel
+            if (backend.getState() >= 1.0) {
+                drawLevel1(g);
+            } else {
+                drawLevelSelect(g, 0);
 
-            if (backend.getState() == -1) {
-                drawInstructionOverlay(g, 0);
+                if (backend.getState() == Game.STATE_INFO) {
+                    drawInstructionOverlay(g, 0);
+                }
             }
         }
     }
@@ -160,5 +164,12 @@ public class GameView extends JFrame {
         fm = g2d.getFontMetrics();
         g2d.drawString("X", CLOSE_BTN_X + (CLOSE_BTN_SIZE - fm.stringWidth("X")) / 2,
                 dy + CLOSE_BTN_Y + CLOSE_BTN_SIZE - 9);
+    }
+
+    private void drawLevel1(Graphics g) {
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        backend.getBall().draw(g);
     }
 }
