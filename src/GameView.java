@@ -1,12 +1,17 @@
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 
 public class GameView extends JFrame {
+    // Important magic numbers
+    // Window numbers
+    public static final int LOGICAL_WIDTH = 1000;
+    public static final int LOGICAL_HEIGHT = 1000;
 
-    public static final int WINDOW_WIDTH = 1000;
-    public static final int WINDOW_HEIGHT = 1000;
+    public static final int WINDOW_WIDTH = LOGICAL_WIDTH;
+    public static final int WINDOW_HEIGHT = LOGICAL_HEIGHT;
 
-    // ? (help) button — circle center and radius (logical coords, no title bar)
+    // ? (help) button — circle center and radius
     public static final int HELP_BTN_CX = 920;
     public static final int HELP_BTN_CY = 55;
     public static final int HELP_BTN_RADIUS = 22;
@@ -27,31 +32,57 @@ public class GameView extends JFrame {
     public static final int CLOSE_BTN_X = OVERLAY_X + OVERLAY_W - 42;
     public static final int CLOSE_BTN_Y = OVERLAY_Y + 10;
     public static final int CLOSE_BTN_SIZE = 30;
-
+    // Need backend and GamePanel
     private Game backend;
-
+    private GamePanel panel;
+    // Constructor
     public GameView(Game backend) {
+        // Back end
         this.backend = backend;
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // front end constructor operations
         this.setTitle("Game");
-        this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setResizable(false);
+
+        panel = new GamePanel();
+        panel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
+        this.setContentPane(panel);   // panel becomes the drawable area
+        this.pack();                  // sizes the frame to fit the panel
+        this.setLocationRelativeTo(null); // center on screen (optional)
         this.setVisible(true);
     }
 
-    public void paint(Graphics g) {
-        int dy = getInsets().top; // offset so logical coords skip the title bar
-
-        drawLevelSelect(g, dy);
-
-        if (backend.getState() == -1) {
-            drawInstructionOverlay(g, dy);
-        }
+    // Expose the panel so Game can attach mouse listeners directly to it.
+    public JPanel getPanel() {
+        return panel;
     }
 
+    // GamePanel internal class
+    private class GamePanel extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            // if in levels, draw specific level
+            if (backend.getState() >= 1.0) {
+                drawLevel1(g);
+                // if in level select, draw it, and help menu as well if applicable
+            } else {
+                drawLevelSelect(g, 0);
+
+                if (backend.getState() == Game.STATE_INFO) {
+                    drawInstructionOverlay(g, 0);
+                }
+            }
+        }
+    }
+    // Draws level select screen
     private void drawLevelSelect(Graphics g, int dy) {
         // Background
+        g.setColor(Color.BLUE);
+        g.fillRect(0, 0, getWidth(), getHeight());
+
         g.setColor(new Color(220, 230, 255));
-        g.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        g.fillRect(0, dy, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         // Title
         g.setColor(new Color(30, 30, 80));
@@ -72,6 +103,7 @@ public class GameView extends JFrame {
         // Level 1 box
         g.setColor(new Color(80, 170, 90));
         g.fillRoundRect(LEVEL1_X, dy + LEVEL1_Y, LEVEL1_W, LEVEL1_H, 18, 18);
+
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 28));
         fm = g.getFontMetrics();
@@ -79,7 +111,7 @@ public class GameView extends JFrame {
         g.drawString(lvl, LEVEL1_X + (LEVEL1_W - fm.stringWidth(lvl)) / 2,
                 dy + LEVEL1_Y + LEVEL1_H / 2 + 10);
     }
-
+    // Draws instructions pop up
     private void drawInstructionOverlay(Graphics g, int dy) {
         // Graphics 2d object essentially extends the graphics object for more tools to put the overlay on
         Graphics2D g2d = (Graphics2D) g;
@@ -91,6 +123,7 @@ public class GameView extends JFrame {
         // Overlay box background
         g2d.setColor(Color.WHITE);
         g2d.fillRoundRect(OVERLAY_X, dy + OVERLAY_Y, OVERLAY_W, OVERLAY_H, 20, 20);
+
         g2d.setColor(new Color(80, 80, 120));
         g2d.setStroke(new BasicStroke(2));
         g2d.drawRoundRect(OVERLAY_X, dy + OVERLAY_Y, OVERLAY_W, OVERLAY_H, 20, 20);
@@ -138,5 +171,14 @@ public class GameView extends JFrame {
         fm = g2d.getFontMetrics();
         g2d.drawString("X", CLOSE_BTN_X + (CLOSE_BTN_SIZE - fm.stringWidth("X")) / 2,
                 dy + CLOSE_BTN_Y + CLOSE_BTN_SIZE - 9);
+    }
+    // Temporary will move to Level, draws level1
+    private void drawLevel1(Graphics g) {
+        Level level = backend.getCurrentLevel();
+        if (level != null) {
+            level.draw(g);
+        }
+
+        backend.getBall().draw(g);
     }
 }
