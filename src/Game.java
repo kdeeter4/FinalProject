@@ -59,5 +59,37 @@ public class Game implements MouseListener, MouseMotionListener {
 
     public static void main(String[] args) {
         Game g = new Game();
+
+        // --- Tune scoring test ---
+        int q = 400;  // quarter note
+        int h = 800;  // half note
+        int gap = 50;
+
+        // Original tune: C4 G4 A4 G4
+        Tune original = new Tune(new Tune.NoteEvent[] {
+                new Tune.NoteEvent(new Note("C4"), q, gap),
+                new Tune.NoteEvent(new Note("G4"), q, gap),
+                new Tune.NoteEvent(new Note("A4"), q, gap),
+                new Tune.NoteEvent(new Note("G4"), h, gap),
+        });
+
+        // Slightly off: one wrong note (E4 instead of G4), one slightly different duration
+        Tune attempt = new Tune(new Tune.NoteEvent[] {
+                new Tune.NoteEvent(new Note("C4"), h, 99),      // same
+                new Tune.NoteEvent(new Note("E4"), gap, 35),      // wrong note (was G4)
+                new Tune.NoteEvent(new Note("A4"), 350, 2),    // right note, slightly short
+                new Tune.NoteEvent(new Note("G5"), h, 5),      // same
+        });
+
+        // Exact copy — should be 100
+        Tune exact = new Tune(new Tune.NoteEvent[] {
+                new Tune.NoteEvent(new Note("C4"), q, gap),
+                new Tune.NoteEvent(new Note("G4"), q, gap),
+                new Tune.NoteEvent(new Note("A4"), q, gap),
+                new Tune.NoteEvent(new Note("G4"), h, gap),
+        });
+
+        System.out.println("Score (slightly off): " + original.score(attempt));  // expect ~70-85
+        System.out.println("Score (exact match):  " + original.score(exact));    // expect 100
     }
 }
