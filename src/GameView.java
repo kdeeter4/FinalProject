@@ -3,14 +3,15 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class GameView extends JFrame {
-
+    // Important magic numbers
+    // Window numbers
     public static final int LOGICAL_WIDTH = 1000;
     public static final int LOGICAL_HEIGHT = 1000;
 
     public static final int WINDOW_WIDTH = LOGICAL_WIDTH;
     public static final int WINDOW_HEIGHT = LOGICAL_HEIGHT;
 
-    // ? (help) button — circle center and radius (logical coords, no title bar)
+    // ? (help) button — circle center and radius
     public static final int HELP_BTN_CX = 920;
     public static final int HELP_BTN_CY = 55;
     public static final int HELP_BTN_RADIUS = 22;
@@ -31,13 +32,14 @@ public class GameView extends JFrame {
     public static final int CLOSE_BTN_X = OVERLAY_X + OVERLAY_W - 42;
     public static final int CLOSE_BTN_Y = OVERLAY_Y + 10;
     public static final int CLOSE_BTN_SIZE = 30;
-
+    // Need backend and GamePanel
     private Game backend;
     private GamePanel panel;
-
+    // Constructor
     public GameView(Game backend) {
+        // Back end
         this.backend = backend;
-
+        // front end constructor operations
         this.setTitle("Game");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
@@ -48,7 +50,6 @@ public class GameView extends JFrame {
         this.pack();                  // sizes the frame to fit the panel
         this.setLocationRelativeTo(null); // center on screen (optional)
         this.setVisible(true);
-
     }
 
     // Expose the panel so Game can attach mouse listeners directly to it.
@@ -56,13 +57,15 @@ public class GameView extends JFrame {
         return panel;
     }
 
+    // GamePanel internal class
     private class GamePanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-
+            // if in levels, draw specific level
             if (backend.getState() >= 1.0) {
                 drawLevel1(g);
+                // if in level select, draw it, and help menu as well if applicable
             } else {
                 drawLevelSelect(g, 0);
 
@@ -72,7 +75,7 @@ public class GameView extends JFrame {
             }
         }
     }
-
+    // Draws level select screen
     private void drawLevelSelect(Graphics g, int dy) {
         // Background
         g.setColor(Color.BLUE);
@@ -108,7 +111,7 @@ public class GameView extends JFrame {
         g.drawString(lvl, LEVEL1_X + (LEVEL1_W - fm.stringWidth(lvl)) / 2,
                 dy + LEVEL1_Y + LEVEL1_H / 2 + 10);
     }
-
+    // Draws instructions pop up
     private void drawInstructionOverlay(Graphics g, int dy) {
         // Graphics 2d object essentially extends the graphics object for more tools to put the overlay on
         Graphics2D g2d = (Graphics2D) g;
@@ -169,7 +172,7 @@ public class GameView extends JFrame {
         g2d.drawString("X", CLOSE_BTN_X + (CLOSE_BTN_SIZE - fm.stringWidth("X")) / 2,
                 dy + CLOSE_BTN_Y + CLOSE_BTN_SIZE - 9);
     }
-
+    // Temporary will move to Level, draws level1
     private void drawLevel1(Graphics g) {
         Level level = backend.getCurrentLevel();
         if (level != null) {

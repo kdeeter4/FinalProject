@@ -1,27 +1,31 @@
 import java.awt.*;
 
 public class Ball {
+    // Movement info
     private double xpos;
     private double ypos;
     private double dx;
     private double dy;
-
+    // Magic Numbers
     private static final int SIZE = 35;
     private static final double GRAVITY = 1;
     private static final double BOUNCE = 0.9;
 
     private static final double STOP_SPEED = 1.0;
-
+    // Constructor
     public Ball(double x, double y) {
+        // testing sample velocity
         xpos = x;
         ypos = y;
-        dx = 30;
+        dx = 0;
         dy = -20;
     }
-
+    // Every tick where the ball moves, takes in level to move and see when bounce occurs
     public void tickStep(Level level) {
+        // Gravity applies
         dy += GRAVITY;
 
+        // find next x and y for good bounce collision code
         double nextX = xpos + dx;
         double nextY = ypos + dy;
 
@@ -36,6 +40,7 @@ public class Ball {
             dx = -dx;
         } else {
             xpos = nextX;
+            // If no collisions, just move ball normally
         }
 
         // Ceiling
@@ -55,6 +60,7 @@ public class Ball {
                 ypos = GameView.WINDOW_HEIGHT - SIZE;
             }
         } else {
+            // If no collisions, just move ball normally
             ypos = nextY;
         }
 
