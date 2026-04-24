@@ -37,18 +37,22 @@ public class GameView extends JFrame {
 
         this.setTitle("Game");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setResizable(false);
         this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setIgnoreRepaint(true);
+        this.setResizable(false);
         this.setVisible(true);
+        ((JComponent) getContentPane()).setOpaque(false);
 
-        createBuffer();
+        System.out.println("GameView ctor running");
     }
 
     private void createBuffer() {
         int w = getWidth();
         int h = getHeight();
-        if (w > 0 && h > 0) {
+        if (w <= 0 || h <= 0) {
+            backBuffer = null;
+            return;
+        }
+        if (backBuffer == null || backBuffer.getWidth() != w || backBuffer.getHeight() != h) {
             backBuffer = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         }
     }
@@ -56,14 +60,18 @@ public class GameView extends JFrame {
 
     @Override
     public void paint(Graphics g) {
-        if (backBuffer == null || backBuffer.getWidth() != getWidth() || backBuffer.getHeight() != getHeight()) {
-            createBuffer();
+        super.paint(g);
+        System.out.println("paint running, state = " + backend.getState());
+
+        createBuffer();
+        if (backBuffer == null) {
+            // Frame isn't fully realized yet; nothing to draw.
+            return;
         }
 
         Graphics2D g2 = backBuffer.createGraphics();
-
-        g2.setColor(getBackground());
-        g2.fillRect(0, 0, getWidth(), getHeight());
+        g2.setColor(Color.WHITE);
+        g2.fillRect(0, 0, backBuffer.getWidth(), backBuffer.getHeight());
 
         renderGame(g2);
 
@@ -78,41 +86,47 @@ public class GameView extends JFrame {
 
         if (backend.getState() == Game.STATE_INFO) {
             drawInstructionOverlay(g, dy);
-        } else if (backend.isInLevel()) {
+        } else if (backend.getState() >= 1.0) {
             backend.getBall().draw(g);
         }
+        g.setColor(Color.RED);
+        g.fillRect(100, 100, 100, 100);
     }
 
     private void drawLevelSelect(Graphics g, int dy) {
         // Background
-        g.setColor(new Color(220, 230, 255));
-        g.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        g.setColor(Color.BLUE);
+        g.fillRect(0, 0, backBuffer.getWidth(), backBuffer.getHeight());
 
-        // Title
-        g.setColor(new Color(30, 30, 80));
-        g.setFont(new Font("Arial", Font.BOLD, 42));
-        FontMetrics fm = g.getFontMetrics();
-        String title = "Select a Level";
-        g.drawString(title, (WINDOW_WIDTH - fm.stringWidth(title)) / 2, dy + 80);
-
-        // ? button circle
-        g.setColor(new Color(60, 120, 200));
-        g.fillOval(HELP_BTN_CX - HELP_BTN_RADIUS, dy + HELP_BTN_CY - HELP_BTN_RADIUS,
-                HELP_BTN_RADIUS * 2, HELP_BTN_RADIUS * 2);
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 22));
-        fm = g.getFontMetrics();
-        g.drawString("?", HELP_BTN_CX - fm.stringWidth("?") / 2, dy + HELP_BTN_CY + 8);
-
-        // Level 1 box
-        g.setColor(new Color(80, 170, 90));
-        g.fillRoundRect(LEVEL1_X, dy + LEVEL1_Y, LEVEL1_W, LEVEL1_H, 18, 18);
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 28));
-        fm = g.getFontMetrics();
-        String lvl = "Level 1";
-        g.drawString(lvl, LEVEL1_X + (LEVEL1_W - fm.stringWidth(lvl)) / 2,
-                dy + LEVEL1_Y + LEVEL1_H / 2 + 10);
+//        g.setColor(new Color(220, 230, 255));
+//        g.fillRect(0, dy, WINDOW_WIDTH, WINDOW_HEIGHT);
+//
+//        // Title
+//        g.setColor(new Color(30, 30, 80));
+//        g.setFont(new Font("Arial", Font.BOLD, 42));
+//        FontMetrics fm = g.getFontMetrics();
+//        String title = "Select a Level";
+//        g.drawString(title, (WINDOW_WIDTH - fm.stringWidth(title)) / 2, dy + 80);
+//
+//        // ? button circle
+//        g.setColor(new Color(60, 120, 200));
+//        g.fillOval(HELP_BTN_CX - HELP_BTN_RADIUS, dy + HELP_BTN_CY - HELP_BTN_RADIUS,
+//                HELP_BTN_RADIUS * 2, HELP_BTN_RADIUS * 2);
+//        g.setColor(Color.WHITE);
+//        g.setFont(new Font("Arial", Font.BOLD, 22));
+//        fm = g.getFontMetrics();
+//        g.drawString("?", HELP_BTN_CX - fm.stringWidth("?") / 2, dy + HELP_BTN_CY + 8);
+//
+//        // Level 1 box
+//        g.setColor(new Color(80, 170, 90));
+//        g.fillRoundRect(LEVEL1_X, dy + LEVEL1_Y, LEVEL1_W, LEVEL1_H, 18, 18);
+//
+//        g.setColor(Color.WHITE);
+//        g.setFont(new Font("Arial", Font.BOLD, 28));
+//        fm = g.getFontMetrics();
+//        String lvl = "Level 1";
+//        g.drawString(lvl, LEVEL1_X + (LEVEL1_W - fm.stringWidth(lvl)) / 2,
+//                dy + LEVEL1_Y + LEVEL1_H / 2 + 10);
     }
 
     private void drawInstructionOverlay(Graphics g, int dy) {
@@ -126,6 +140,7 @@ public class GameView extends JFrame {
         // Overlay box background
         g2d.setColor(Color.WHITE);
         g2d.fillRoundRect(OVERLAY_X, dy + OVERLAY_Y, OVERLAY_W, OVERLAY_H, 20, 20);
+
         g2d.setColor(new Color(80, 80, 120));
         g2d.setStroke(new BasicStroke(2));
         g2d.drawRoundRect(OVERLAY_X, dy + OVERLAY_Y, OVERLAY_W, OVERLAY_H, 20, 20);
