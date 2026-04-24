@@ -4,8 +4,11 @@ import javax.swing.*;
 
 public class GameView extends JFrame {
 
-    public static final int WINDOW_WIDTH = 1000;
-    public static final int WINDOW_HEIGHT = 1000;
+    public static final int LOGICAL_WIDTH = 1000;
+    public static final int LOGICAL_HEIGHT = 1000;
+
+    public static final int WINDOW_WIDTH = LOGICAL_WIDTH;
+    public static final int WINDOW_HEIGHT = LOGICAL_HEIGHT;
 
     // ? (help) button — circle center and radius (logical coords, no title bar)
     public static final int HELP_BTN_CX = 920;
@@ -45,6 +48,7 @@ public class GameView extends JFrame {
         this.pack();                  // sizes the frame to fit the panel
         this.setLocationRelativeTo(null); // center on screen (optional)
         this.setVisible(true);
+
     }
 
     // Expose the panel so Game can attach mouse listeners directly to it.
@@ -167,8 +171,10 @@ public class GameView extends JFrame {
     }
 
     private void drawLevel1(Graphics g) {
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        Level level = backend.getCurrentLevel();
+        if (level != null) {
+            level.draw(g);
+        }
 
         backend.getBall().draw(g);
     }

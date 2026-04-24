@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.awt.event.*;
 import javax.swing.Timer;
 import java.awt.event.MouseEvent;
@@ -20,6 +21,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
     private double state;
     private int levelsCompleted;
     private Ball b;
+    private Level currentLevel;
 
 
     public Game() {
@@ -32,6 +34,10 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
 
         Timer tick = new Timer(16, this);
         tick.start();
+        currentLevel = new Level(Color.WHITE, new Rectangle(850, 850, 100, 100));
+        currentLevel.addObstacle(new Obstacle(250, 700, 200, 25, Color.BLACK));
+        currentLevel.addObstacle(new Obstacle(500, 550, 180, 25, Color.BLACK));
+        currentLevel.addObstacle(new Obstacle(700, 400, 150, 25, Color.BLACK));
     }
 
     public double getState() {
@@ -40,6 +46,10 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
 
     public Ball getBall() {
         return b;
+    }
+
+    public Level getCurrentLevel() {
+        return currentLevel;
     }
 
     public boolean isInLevel() {
@@ -88,7 +98,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (state >= 1.0) {
-            b.tickStep();
+            b.tickStep(currentLevel);
         }
         window.repaint();
     }
