@@ -17,11 +17,14 @@ public class Ball {
         // testing sample velocity
         xpos = x;
         ypos = y;
-        dx = 0;
+        dx = 10;
         dy = -20;
     }
     // Every tick where the ball moves, takes in level to move and see when bounce occurs
     public void tickStep(Level level) {
+        double prevX = xpos;
+        double prevY = ypos;
+
         dy += GRAVITY;
 
         double nextX = xpos + dx;
@@ -60,31 +63,72 @@ public class Ball {
             ypos = nextY;
         }
 
-        // Landing on top of obstacles
-        if (level != null && dy >= 0) {
-            Rectangle ballNow = new Rectangle((int) xpos, (int) (ypos - dy), SIZE, SIZE);
-            Rectangle ballNext = new Rectangle((int) xpos, (int) ypos, SIZE, SIZE);
+        // Rectangle collisions: top, bottom, left, right
+        if (level != null) {
+            Rectangle ballPrev = new Rectangle((int) prevX, (int) prevY, SIZE, SIZE);
+            Rectangle ballNow  = new Rectangle((int) xpos, (int) ypos, SIZE, SIZE);
 
             for (Obstacle obstacle : level.getObstacles()) {
                 Rectangle r = obstacle.getBounds();
 
-                boolean wasAbove = ballNow.y + ballNow.height <= r.y;
-                boolean crossedTop = ballNext.y + ballNext.height >= r.y;
-                boolean overlapsX = ballNext.x + ballNext.width > r.x && ballNext.x < r.x + r.width;
+                if (!ballNow.intersects(r)) {
+                    continue;
+                }
 
-                if (wasAbove && crossedTop && overlapsX) {
-                    double bottomAfterMove = ypos + SIZE;
-                    double overshoot = bottomAfterMove - r.y;
+                boolean cameFromAbove = ballPrev.y + ballPrev.height <= r.y;
+                boolean cameFromBelow = ballPrev.y >= r.y + r.height;
+                boolean cameFromLeft  = ballPrev.x + ballPrev.width <= r.x;
+                boolean cameFromRight = ballPrev.x >= r.x + r.width;
 
+                double overlapTop    = ballNow.y + ballNow.height - r.y;
+                double overlapBottom = r.y + r.height - ballNow.y;
+                double overlapLeft   = ballNow.x + ballNow.width - r.x;
+                double overlapRight  = r.x + r.width - ballNow.x;
+
+                // Pick the most likely collision face using movement direction first.
+                if (cameFromAbove && dy >= 0 && overlapTop <= overlapLeft && overlapTop <= overlapRight) {
                     dy = -dy * BOUNCE;
-                    ypos = r.y - SIZE - overshoot * BOUNCE;
+                    ypos = r.y - SIZE;
 
                     if (Math.abs(dy) < STOP_SPEED) {
                         dy = 0;
                         ypos = r.y - SIZE;
                     }
-                    break;
+                } else if (cameFromBelow && dy < 0 && overlapBottom <= overlapLeft && overlapBottom <= overlapRight) {
+                    dy = -dy * BOUNCE;
+                    ypos = r.y + r.height;
+                } else if (cameFromLeft && dx > 0 && overlapLeft < overlapTop && overlapLeft < overlapBottom) {
+                    dx = -dx * BOUNCE;
+                    xpos = r.x - SIZE;
+                } else if (cameFromRight && dx < 0 && overlapRight < overlapTop && overlapRight < overlapBottom) {
+                    dx = -dx * BOUNCE;
+                    xpos = r.x + r.width;
+                } else {
+                    // Fallback if corner overlap or high-speed penetration makes side unclear:
+                    double minOverlap = Math.min(Math.min(overlapTop, overlapBottom),
+                            Math.min(overlapLeft, overlapRight));
+
+                    if (minOverlap == overlapTop) {
+                        dy = -dy * BOUNCE;
+                        ypos = r.y - SIZE;
+
+                        if (Math.abs(dy) < STOP_SPEED) {
+                            dy = 0;
+                            ypos = r.y - SIZE;
+                        }
+                    } else if (minOverlap == overlapBottom) {
+                        dy = -dy * BOUNCE;
+                        ypos = r.y + r.height;
+                    } else if (minOverlap == overlapLeft) {
+                        dx = -dx * BOUNCE;
+                        xpos = r.x - SIZE;
+                    } else {
+                        dx = -dx * BOUNCE;
+                        xpos = r.x + r.width;
+                    }
                 }
+
+                break;
             }
         }
     }
