@@ -6,7 +6,7 @@ public class GameView extends JFrame {
     // Important magic numbers
     // Window numbers
     public static final int LOGICAL_WIDTH = 1000;
-    public static final int LOGICAL_HEIGHT = 1000;
+    public static final int LOGICAL_HEIGHT = 800;
 
     public static final int WINDOW_WIDTH = LOGICAL_WIDTH;
     public static final int WINDOW_HEIGHT = LOGICAL_HEIGHT;
@@ -42,13 +42,16 @@ public class GameView extends JFrame {
         // front end constructor operations
         this.setTitle("Game");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setResizable(false);
+        this.setResizable(true);
 
         panel = new GamePanel();
         panel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
-        this.setContentPane(panel);   // panel becomes the drawable area
-        this.pack();                  // sizes the frame to fit the panel
-        this.setLocationRelativeTo(null); // center on screen (optional)
+        panel.setMinimumSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
+
+        this.setContentPane(panel);
+        this.pack();
+        this.setMinimumSize(this.getSize());
+        this.setLocationRelativeTo(null);
         this.setVisible(true);
     }
 
@@ -62,27 +65,37 @@ public class GameView extends JFrame {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            // if in levels, draw specific level
+
+            Graphics2D g2 = (Graphics2D) g.create();
+
+            int panelW = getWidth();
+            int panelH = getHeight();
+
+            int drawW = LOGICAL_WIDTH;
+            int drawH = LOGICAL_HEIGHT;
+            int offsetX = (panelW - drawW) / 2;
+            int offsetY = (panelH - drawH) / 2;
+
+            g2.translate(offsetX, offsetY);
+
             if (backend.getState() >= 1.0) {
-                drawLevel1(g);
-                // if in level select, draw it, and help menu as well if applicable
+                drawLevel1(g2);
             } else {
-                drawLevelSelect(g, 0);
+                drawLevelSelect(g2, 0);
 
                 if (backend.getState() == Game.STATE_INFO) {
-                    drawInstructionOverlay(g, 0);
+                    drawInstructionOverlay(g2, 0);
                 }
             }
+
+            g2.dispose();
         }
     }
     // Draws level select screen
     private void drawLevelSelect(Graphics g, int dy) {
         // Background
-        g.setColor(Color.BLUE);
-        g.fillRect(0, 0, getWidth(), getHeight());
-
         g.setColor(new Color(220, 230, 255));
-        g.fillRect(0, dy, WINDOW_WIDTH, WINDOW_HEIGHT);
+        g.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         // Title
         g.setColor(new Color(30, 30, 80));

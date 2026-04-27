@@ -22,10 +22,8 @@ public class Ball {
     }
     // Every tick where the ball moves, takes in level to move and see when bounce occurs
     public void tickStep(Level level) {
-        // Gravity applies
         dy += GRAVITY;
 
-        // find next x and y for good bounce collision code
         double nextX = xpos + dx;
         double nextY = ypos + dy;
 
@@ -40,7 +38,6 @@ public class Ball {
             dx = -dx;
         } else {
             xpos = nextX;
-            // If no collisions, just move ball normally
         }
 
         // Ceiling
@@ -60,7 +57,6 @@ public class Ball {
                 ypos = GameView.WINDOW_HEIGHT - SIZE;
             }
         } else {
-            // If no collisions, just move ball normally
             ypos = nextY;
         }
 

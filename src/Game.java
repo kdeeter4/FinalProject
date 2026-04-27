@@ -62,8 +62,18 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener 
 // when mouse is pressed, check which state it is in and see if it hits buttons
     public void mousePressed(MouseEvent e) {
         // get mouse coordinates
-        int x = e.getX();
-        int y = e.getY();
+        int panelW = window.getPanel().getWidth();
+        int panelH = window.getPanel().getHeight();
+
+        int offsetX = (panelW - GameView.LOGICAL_WIDTH) / 2;
+        int offsetY = (panelH - GameView.LOGICAL_HEIGHT) / 2;
+
+        int x = e.getX() - offsetX;
+        int y = e.getY() - offsetY;
+
+        if (x < 0 || x > GameView.LOGICAL_WIDTH || y < 0 || y > GameView.LOGICAL_HEIGHT) {
+            return;
+        }
         // If in info state and press close button, go to menu
         if (state == STATE_INFO) {
             // Check X button on instruction overlay
