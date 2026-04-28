@@ -3,7 +3,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class GameView extends JFrame {
-    // Important magic numbers
     // Window numbers
     public static final int LOGICAL_WIDTH = 1000;
     public static final int LOGICAL_HEIGHT = 1000;
