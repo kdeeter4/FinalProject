@@ -20,28 +20,27 @@ public class Note {
         this.letter = name.charAt(0);
         this.octave = Character.getNumericValue(name.charAt(1));
 
-        if (octave < 3 || octave > 6) {
-            throw new IllegalArgumentException("Octave must be between 3 and 6");
-        }
-        if (notes.indexOf(letter) == -1) {
-            throw new IllegalArgumentException("Note letter must be one of: C D E F G A B");
-        }
-
         double baseFreq = FREQUENCIES[notes.indexOf(letter)];
-        this.freq = baseFreq * Math.pow(2, octave - 4); // double for each octave above 4, halve for below
+        // For each octave you double the frequency so this doubles the frequency the necessary amount of times
+        this.freq = baseFreq * Math.pow(2, octave - 4);
     }
 
+    // Gets the name of the note
     public String getName() {
         return name;
     }
 
+    // Plays the note
     public void playNote(int durationMs) {
+        // Creates seperate thread to prevent the game from freezing
         Thread audioThread = new Thread(() -> {
             try {
+                // Splits the wanted sound up into samples where each sample plays for a certain number of seconds
                 float sampleRate = 44100f;
                 int numSamples = (int) (sampleRate * durationMs / 1000);
                 byte[] buffer = new byte[numSamples * 2];
 
+                // Creates a sin wave by performing a sin() computation based on where the sample shows up
                 for (int i = 0; i < numSamples; i++) {
                     double angle = 2.0 * Math.PI * i * freq / sampleRate;
                     short sample = (short) (Short.MAX_VALUE * Math.sin(angle));
@@ -49,10 +48,12 @@ public class Note {
                     buffer[i * 2 + 1] = (byte) ((sample >> 8) & 0xFF);
                 }
 
+                // Creates an audioforamt and dataline object to play the sound to the user
                 AudioFormat format = new AudioFormat(sampleRate, 16, 1, true, false);
                 DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
                 SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
 
+                // Plays the sound through the open line
                 line.open(format);
                 line.start();
                 line.write(buffer, 0, buffer.length);
@@ -64,6 +65,7 @@ public class Note {
             }
         });
 
+        // Required functions to make the main thread function normally
         audioThread.setDaemon(true);
         audioThread.start();
     }
