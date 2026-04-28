@@ -17,8 +17,8 @@ public class Ball {
         // testing sample velocity
         xpos = x;
         ypos = y;
-        dx = 10;
-        dy = -20;
+        dx = 3;
+        dy = 0;
     }
     // Every tick where the ball moves, takes in level to move and see when bounce occurs
     public void tickStep(Level level) {
