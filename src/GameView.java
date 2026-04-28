@@ -3,7 +3,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class GameView extends JFrame {
-    // Important magic numbers
     // Window numbers
     public static final int LOGICAL_WIDTH = 1000;
     public static final int LOGICAL_HEIGHT = 1000;
@@ -149,7 +148,7 @@ public class GameView extends JFrame {
             "",
             "  \u2022  Use your mouse to interact with the game.",
             "  \u2022  Click on a level to begin playing.",
-            "  \u2022  Your goal is to complete each level.",
+            "  \u2022  For each level, you must get the ball to the target and get a song score of 95+",
             "",
             "  \u2022  [Placeholder instruction line 1]",
             "  \u2022  [Placeholder instruction line 2]",
