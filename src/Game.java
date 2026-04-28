@@ -7,8 +7,7 @@ import java.awt.event.MouseMotionListener;
 
 
 public class Game implements MouseListener, MouseMotionListener, ActionListener {
-    //Hz for c4 through c5
-    public final double[] NOTES = {261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25};
+
     // Game States
     public static final double STATE_INFO = -1.0;
     public static final double STATE_MENU = 0.0;
