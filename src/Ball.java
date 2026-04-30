@@ -88,7 +88,7 @@ public class Ball {
                         dy = 0;
                         ypos = r.y - SIZE;
                     }
-
+                    // if obstacle ball hits is a noteblock and notelistner is going, record the note
                     if (obstacle instanceof NoteBlock && noteListener != null) {
                         noteListener.onNoteBlockHit((NoteBlock) obstacle);
                     }
@@ -102,7 +102,7 @@ public class Ball {
         g.setColor(Color.RED);
         g.fillOval((int) xpos, (int) ypos, SIZE, SIZE);
     }
-
+    // set the note block listener, which records when you hit a noteblock and what note it is for grading
     public void setNoteBlockListener(NoteBlockListener l) {
         this.noteListener = l;
     }

@@ -57,12 +57,15 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
         for (int i = 0; i < noteNames.length; i++) {
             palette.add(new NoteBlock(new Note(noteNames[i]), 400, 20, 100 + i * 70));
         }
+        // backend is the listener of noteblock hits
         b.setNoteBlockListener(this);
+        // Target tune is simple C major arpeggio
         Tune.NoteEvent[] target = {
                 new Tune.NoteEvent(new Note("C4"), 400, 100),
                 new Tune.NoteEvent(new Note("E4"), 400, 100),
                 new Tune.NoteEvent(new Note("G4"), 400, 100),
         };
+        // Set current level target tune to what we just made
         currentLevel.setTargetTune(new Tune(target));
     }
     // Getters
@@ -90,6 +93,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
             // Check palette for pick-up
             for (NoteBlock nb : palette) {
                 if (nb.getBounds().contains(e.getX(), e.getY())) {
+                    // Drag a new noteblock so one always stays in the menu
                     dragging = new NoteBlock(nb.getNote(), nb.getDurationMs(), e.getX()-25, e.getY()-25);
                     dragOffsetX = 25; dragOffsetY = 25;
                     return;
