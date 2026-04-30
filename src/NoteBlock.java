@@ -1,15 +1,17 @@
 import java.awt.Graphics;
 import java.awt.*;
 
-public class NoteBlock {
+public class NoteBlock extends Obstacle{
 
     private Note note;
     private boolean inPlay;
     private double x;
     private double y;
     private int durationMs;
+    public int RADIUS = 25;
 
     public NoteBlock(Note note, int durationMs, double x, double y) {
+        super((int) x,(int) y, 50, 50, Color.GREEN);
         this.note = note;
         this.durationMs = durationMs;
         this.x = x;
@@ -71,6 +73,12 @@ public class NoteBlock {
     public double getY() {
         return y;
     }
+
+    public double getCenterX() { return x + RADIUS; }
+    public double getCenterY() { return y + RADIUS; }
+    public int getRadius() { return RADIUS; }
+    public Note getNote() { return note; }
+    public int getDurationMs() { return durationMs; }
 
     public void setInPlay(boolean inPlay) {
         this.inPlay = inPlay;

@@ -6,8 +6,9 @@ public class Ball {
     private double ypos;
     private double dx;
     private double dy;
+    private NoteBlockListener noteListener;
     // Magic Numbers
-    private static final int SIZE = 35;
+    public static final int SIZE = 35;
     private static final double GRAVITY = 1;
     private static final double BOUNCE = 0.9;
 
@@ -87,6 +88,10 @@ public class Ball {
                         dy = 0;
                         ypos = r.y - SIZE;
                     }
+
+                    if (obstacle instanceof NoteBlock && noteListener != null) {
+                        noteListener.onNoteBlockHit((NoteBlock) obstacle);
+                    }
                     break;
                 }
             }
@@ -96,5 +101,17 @@ public class Ball {
     public void draw(Graphics g) {
         g.setColor(Color.RED);
         g.fillOval((int) xpos, (int) ypos, SIZE, SIZE);
+    }
+
+    public void setNoteBlockListener(NoteBlockListener l) {
+        this.noteListener = l;
+    }
+
+    public double getXpos() {
+        return xpos;
+    }
+
+    public double getYpos() {
+        return ypos;
     }
 }

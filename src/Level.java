@@ -7,6 +7,11 @@ public class Level {
     private List<Obstacle> obstacles;
     private Rectangle target;
 
+    private Tune targetTune;
+
+    public void setTargetTune(Tune t) { this.targetTune = t; }
+    public Tune getTargetTune() { return targetTune; }
+
     public Level(Color backgroundColor, Rectangle target) {
         this.backgroundColor = backgroundColor;
         this.target = target;
