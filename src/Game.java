@@ -137,12 +137,14 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
                 }
             }
 
-            // Preview-tune button
-            int previewY = getPreviewBtnY();
-            if (x >= CLEAR_BTN_X && x <= CLEAR_BTN_X + CLEAR_BTN_W
-                    && y >= previewY && y <= previewY + CLEAR_BTN_H) {
-                previewTargetTune();
-                return;
+            // Preview-tune button (only in setup)
+            if (state == STATE_LEVEL1_SETUP) {
+                int previewY = getPreviewBtnY();
+                if (x >= CLEAR_BTN_X && x <= CLEAR_BTN_X + CLEAR_BTN_W
+                        && y >= previewY && y <= previewY + CLEAR_BTN_H) {
+                    previewTargetTune();
+                    return;
+                }
             }
 
             // Play button (only visible in setup mode)
@@ -263,9 +265,10 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
                 lastScore = currentLevel.getTargetTune().score(tuneRecorder.buildTune());
                 state = (lastScore >= 95) ? STATE_WIN : STATE_SCORE_SCREEN;
             } else if (b.isOutOfBounds()) {
-                // Ball fell off the screen — score what was played and show result
-                lastScore = currentLevel.getTargetTune().score(tuneRecorder.buildTune());
-                state = (lastScore >= 95) ? STATE_WIN : STATE_SCORE_SCREEN;
+                // Ball fell off the screen — reset like the restart button
+                b.reset();
+                tuneRecorder.reset();
+                state = STATE_LEVEL1_SETUP;
             }
         }
         window.repaint();
@@ -275,6 +278,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
     @Override
     public void onNoteBlockHit(NoteBlock block) {
+        if (block.isInPlay()) return;   // already playing — don't restart or re-record
         block.playNote();
         block.setInPlay(true);
         tuneRecorder.recordHit(block.getNote(), block.getDurationMs());

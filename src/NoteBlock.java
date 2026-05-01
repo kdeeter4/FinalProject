@@ -39,7 +39,7 @@ public class NoteBlock extends Obstacle{
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         if (inPlay) {
-            g2d.setColor(new Color(80, 200, 200));  // soft cyan-teal glow while playing
+            g2d.setColor(new Color(60, 200, 90));  // green while note is playing
         } else {
             g2d.setColor(Color.DARK_GRAY);  // idle
         }

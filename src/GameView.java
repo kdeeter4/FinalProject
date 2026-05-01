@@ -287,17 +287,7 @@ public class GameView extends JFrame {
                 g2d.fillRoundRect(sx + 4, slotY, sw - 8, Game.SIDEBAR_SLOT_H - 4, 10, 10);
                 palette.get(i).draw(g);
             }
-            // Preview button still works during play
-            int previewY = backend.getPreviewBtnY();
-            boolean playing = backend.isPreviewPlaying();
-            g2d.setColor(playing ? new Color(80, 200, 200) : new Color(50, 120, 170));
-            g2d.fillRoundRect(PREVIEW_BTN_X, previewY, PREVIEW_BTN_W, PREVIEW_BTN_H, 8, 8);
-            g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Arial", Font.BOLD, 11));
-            FontMetrics fm = g2d.getFontMetrics();
-            String prev = playing ? "PLAY\u2026" : "\u25B6 HEAR";
-            g2d.drawString(prev, PREVIEW_BTN_X + (PREVIEW_BTN_W - fm.stringWidth(prev)) / 2,
-                    previewY + PREVIEW_BTN_H / 2 + 4);
+            // Preview button hidden during live play
 
             // Restart button — only shown while ball is live
             int restartY = backend.getRestartBtnY();
@@ -307,7 +297,7 @@ public class GameView extends JFrame {
             g2d.fillRoundRect(Game.CLEAR_BTN_X, restartY, Game.CLEAR_BTN_W, Game.CLEAR_BTN_H / 2, 8, 8);
             g2d.setColor(Color.WHITE);
             g2d.setFont(new Font("Arial", Font.BOLD, 11));
-            fm = g2d.getFontMetrics();
+            FontMetrics fm = g2d.getFontMetrics();
             String rst = "\u21BA RESET";
             g2d.drawString(rst, Game.CLEAR_BTN_X + (Game.CLEAR_BTN_W - fm.stringWidth(rst)) / 2,
                     restartY + Game.CLEAR_BTN_H / 2 + 4);
