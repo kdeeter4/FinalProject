@@ -65,34 +65,82 @@ public class Ball {
             ypos = nextY;
         }
 
-        // Landing on top of obstacles
-        if (level != null && dy >= 0) {
+        // Collision with obstacles
+        if (level != null) {
+            double ballCenterX = xpos + SIZE / 2.0;
+            double ballCenterY = ypos + SIZE / 2.0;
+            double ballRadius = SIZE / 2.0;
+
             Rectangle ballNow = new Rectangle((int) xpos, (int) (ypos - dy), SIZE, SIZE);
             Rectangle ballNext = new Rectangle((int) xpos, (int) ypos, SIZE, SIZE);
 
             for (Obstacle obstacle : level.getObstacles()) {
-                Rectangle r = obstacle.getBounds();
+                double bounce = obstacle instanceof NoteBlock
+                        ? ((NoteBlock) obstacle).getBounce()
+                        : BOUNCE;
 
-                boolean wasAbove = ballNow.y + ballNow.height <= r.y;
-                boolean crossedTop = ballNext.y + ballNext.height >= r.y;
-                boolean overlapsX = ballNext.x + ballNext.width > r.x && ballNext.x < r.x + r.width;
+                if (obstacle.isCircle()) {
+                    double cx = obstacle.getCenterX();
+                    double cy = obstacle.getCenterY();
+                    double r = obstacle.getRadius();
 
-                if (wasAbove && crossedTop && overlapsX) {
-                    double bottomAfterMove = ypos + SIZE;
-                    double overshoot = bottomAfterMove - r.y;
+                    double nx = ballCenterX - cx;
+                    double ny = ballCenterY - cy;
+                    double dist = Math.sqrt(nx * nx + ny * ny);
 
-                    dy = -dy * BOUNCE;
-                    ypos = r.y - SIZE - overshoot * BOUNCE;
+                    if (dist <= ballRadius + r) {
+                        if (dist == 0) {
+                            nx = 0;
+                            ny = -1;
+                            dist = 1;
+                        } else {
+                            nx /= dist;
+                            ny /= dist;
+                        }
 
-                    if (Math.abs(dy) < STOP_SPEED) {
-                        dy = 0;
-                        ypos = r.y - SIZE;
+                        double dot = dx * nx + dy * ny;
+                        dx = (dx - 2 * dot * nx) * bounce;
+                        dy = (dy - 2 * dot * ny) * bounce;
+
+                        double targetDist = ballRadius + r;
+                        double pushOut = targetDist - dist;
+                        xpos += nx * pushOut;
+                        ypos += ny * pushOut;
+
+                        if (Math.abs(dx) < STOP_SPEED) dx = 0;
+                        if (Math.abs(dy) < STOP_SPEED) dy = 0;
+
+                        if (obstacle instanceof NoteBlock && noteListener != null) {
+                            noteListener.onNoteBlockHit((NoteBlock) obstacle);
+                        }
+
+                        break;
                     }
-                    // if obstacle ball hits is a noteblock and notelistner is going, record the note
-                    if (obstacle instanceof NoteBlock && noteListener != null) {
-                        noteListener.onNoteBlockHit((NoteBlock) obstacle);
+                } else if (dy >= 0) {
+                    Rectangle r = obstacle.getBounds();
+
+                    boolean wasAbove = ballNow.y + ballNow.height <= r.y;
+                    boolean crossedTop = ballNext.y + ballNext.height >= r.y;
+                    boolean overlapsX = ballNext.x + ballNext.width > r.x && ballNext.x < r.x + r.width;
+
+                    if (wasAbove && crossedTop && overlapsX) {
+                        double bottomAfterMove = ypos + SIZE;
+                        double overshoot = bottomAfterMove - r.y;
+
+                        dy = -dy * bounce;
+                        ypos = r.y - SIZE - overshoot * bounce;
+
+                        if (Math.abs(dy) < STOP_SPEED) {
+                            dy = 0;
+                            ypos = r.y - SIZE;
+                        }
+
+                        if (obstacle instanceof NoteBlock && noteListener != null) {
+                            noteListener.onNoteBlockHit((NoteBlock) obstacle);
+                        }
+
+                        break;
                     }
-                    break;
                 }
             }
         }

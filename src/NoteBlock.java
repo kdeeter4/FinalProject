@@ -8,10 +8,10 @@ public class NoteBlock extends Obstacle{
     private double x;
     private double y;
     private int durationMs;
-    public int RADIUS = 25;
+    public static final int RADIUS = 30;
 
     public NoteBlock(Note note, int durationMs, double x, double y) {
-        super((int) x,(int) y, 50, 50, Color.GREEN);
+        super((int) x, (int) y, RADIUS * 2, RADIUS * 2, Color.GREEN);
         this.note = note;
         this.durationMs = durationMs;
         this.x = x;
@@ -45,20 +45,23 @@ public class NoteBlock extends Obstacle{
         }
 
         // Fill rounded block
-        g2d.fillRoundRect((int) x, (int) y, 50, 50, 15, 15);
+        int diameter = RADIUS * 2;
 
-        // Border
+// Fill circular block
+        g2d.fillOval((int) x, (int) y, diameter, diameter);
+
+// Border
         g2d.setColor(Color.BLACK);
         g2d.setStroke(new BasicStroke(2));
-        g2d.drawRoundRect((int) x, (int) y, 50, 50, 15, 15);
+        g2d.drawOval((int) x, (int) y, diameter, diameter);
 
-        // Note name centered inside the block
+// Note name centered inside the block
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("Arial", Font.BOLD, 14));
         FontMetrics fm = g2d.getFontMetrics();
         String label = note.getName();
-        int textX = (int) x + (50 - fm.stringWidth(label)) / 2;
-        int textY = (int) y + (50 - fm.getHeight()) / 2 + fm.getAscent();
+        int textX = (int) x + (diameter - fm.stringWidth(label)) / 2;
+        int textY = (int) y + (diameter - fm.getHeight()) / 2 + fm.getAscent();
         g2d.drawString(label, textX, textY);
     }
 
@@ -74,9 +77,32 @@ public class NoteBlock extends Obstacle{
         return y;
     }
 
-    public double getCenterX() { return x + RADIUS; }
-    public double getCenterY() { return y + RADIUS; }
-    public int getRadius() { return RADIUS; }
+    @Override
+    public boolean isCircle() {
+        return true;
+    }
+
+    @Override
+    public double getCenterX() {
+        return x + RADIUS;
+    }
+
+    @Override
+    public double getCenterY() {
+        return y + RADIUS;
+    }
+
+    @Override
+    public double getRadius() {
+        return RADIUS;
+    }
+
+    public double getBounce() {
+        int semitone = Tune.toSemitone(note);
+        semitone = Math.max(0, Math.min(83, semitone));
+        return 0.45 + (semitone / 83.0) * 0.70;
+    }
+
     public Note getNote() { return note; }
     public int getDurationMs() { return durationMs; }
 
