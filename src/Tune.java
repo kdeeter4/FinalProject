@@ -69,8 +69,8 @@ public class Tune {
         // We convert each note to a semitone index so that nearby notes score better than distant ones.
         double pitchTotal = 0;
         for (int i = 0; i < minLen; i++) {
-            int semiA = toSemitone(a[i].note);
-            int semiB = toSemitone(b[i].note);
+            int semiA = Tune.toSemitone(a[i].note);
+            int semiB = Tune.toSemitone(b[i].note);
             int diff = Math.abs(semiA - semiB);
             // Max meaningful diff: 1 octave (12 semitones) = score 0; same = score 1
             double noteSimilarity = Math.max(0, 1.0 - diff / 12.0);
@@ -111,10 +111,10 @@ public class Tune {
 
     // Converts a Note to an absolute semitone number for easy distance comparison.
     // C4 = 0, D4 = 2, ..., B4 = 11, C5 = 12, etc.
-    private int toSemitone(Note note) {
+    public static int toSemitone(Note note) {
         int[] semitones = {0, 2, 4, 5, 7, 9, 11}; // C D E F G A B
         String noteOrder = "CDEFGAB";
         int letterIndex = noteOrder.indexOf(note.letter);
-        return note.octave * 12 + semitones[letterIndex];
+        return (note.octave - 4) * 12 + semitones[letterIndex];
     }
 }

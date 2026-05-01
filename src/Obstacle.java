@@ -19,6 +19,26 @@ public class Obstacle {
         return new Rectangle(x, y, width, height);
     }
 
+    public boolean isCircle() {
+        return false;
+    }
+
+    public double getCenterX() {
+        Rectangle r = getBounds();
+        return r.getCenterX();
+    }
+
+    public double getCenterY() {
+        Rectangle r = getBounds();
+        return r.getCenterY();
+    }
+
+    public double getRadius() {
+        Rectangle r = getBounds();
+        return Math.min(r.width, r.height) / 2.0;
+    }
+
+
     public void draw(Graphics g) {
         g.setColor(color);
         g.fillRect(x, y, width, height);
