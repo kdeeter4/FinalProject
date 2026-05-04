@@ -102,7 +102,6 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
         };
         currentLevel.setTargetTune(new Tune(target));
     }
-
     // Getters
     public double          getState()        { return state; }
     public Ball            getBall()         { return b; }
@@ -130,6 +129,27 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     // Y coordinate of the Restart button — sits below the play button.
     public int getRestartBtnY() {
         return getPlayBtnY() + CLEAR_BTN_H + SIDEBAR_PAD;
+    }
+    private void loadLevel(Level level) {
+        currentLevel = level;
+        palette = currentLevel.makePalette();
+        tuneRecorder = new TuneRecorder();
+
+        b = new Ball(currentLevel.getBallSpawnX(), currentLevel.getBallSpawnY());
+        b.setNoteBlockListener(this);
+    }
+
+    private void resetCurrentLevel() {
+        if (currentLevel == null) {
+            return;
+        }
+
+        currentLevel.clearPlacedBlocks();
+        palette = currentLevel.makePalette();
+        tuneRecorder = new TuneRecorder();
+
+        b = new Ball(currentLevel.getBallSpawnX(), currentLevel.getBallSpawnY());
+        b.setNoteBlockListener(this);
     }
 
     // Checks if it is playing
@@ -230,6 +250,9 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
             }
             if (x >= GameView.LEVEL1_X && x <= GameView.LEVEL1_X + GameView.LEVEL1_W
                     && y >= GameView.LEVEL1_Y && y <= GameView.LEVEL1_Y + GameView.LEVEL1_H) {
+                loadLevel(Level.makeLevel1());
+                state = STATE_LEVEL1;
+                window.repaint();
                 state = STATE_LEVEL1_SETUP; window.repaint();  // enter setup, not live
             }
         // Retry button
