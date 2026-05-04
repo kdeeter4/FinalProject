@@ -26,13 +26,12 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     private Level currentLevel;
     private NoteBlock dragging = null;   // block being dragged
     private int dragOffsetX, dragOffsetY;
-    private List<NoteBlock> palette;     // available blocks on the side
+    private List<NoteBlock> palette; // available blocks on the side/ available blocks on the side     // available blocks on the side
     private TuneRecorder tuneRecorder;
 
     // Constructor
     public Game() {
         // Ball
-        b = new Ball (250.0, 50.0);
         // Front end
         window = new GameView(this);
         // Starting state is Menu
@@ -47,26 +46,9 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
         //Timer for tick and actionPerformed
         Timer tick = new Timer(16, this);
         tick.start();
-        // Making level (temporary)
-        currentLevel = new Level(Color.WHITE, new Rectangle(850, 850, 100, 100));
-        currentLevel.addObstacle(new Obstacle(250, 700, 200, 25, Color.BLACK));
-        currentLevel.addObstacle(new Obstacle(500, 550, 180, 25, Color.BLACK));
-        currentLevel.addObstacle(new Obstacle(700, 400, 150, 25, Color.BLACK));
+
         palette = new ArrayList<>();
-        String[] noteNames = {"C4","D4","E4","F4","G4","A4","B4"};
-        for (int i = 0; i < noteNames.length; i++) {
-            palette.add(new NoteBlock(new Note(noteNames[i]), 400, 20, 100 + i * 70));
-        }
-        // backend is the listener of noteblock hits
-        b.setNoteBlockListener(this);
-        // Target tune is simple C major arpeggio
-        Tune.NoteEvent[] target = {
-                new Tune.NoteEvent(new Note("C4"), 400, 100),
-                new Tune.NoteEvent(new Note("E4"), 400, 100),
-                new Tune.NoteEvent(new Note("G4"), 400, 100),
-        };
-        // Set current level target tune to what we just made
-        currentLevel.setTargetTune(new Tune(target));
+
     }
     // Getters
     public double getState() {
@@ -80,6 +62,27 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     }
     public boolean isInLevel() {
         return state >= 1;
+    }
+    private void loadLevel(Level level) {
+        currentLevel = level;
+        palette = currentLevel.makePalette();
+        tuneRecorder = new TuneRecorder();
+
+        b = new Ball(currentLevel.getBallSpawnX(), currentLevel.getBallSpawnY());
+        b.setNoteBlockListener(this);
+    }
+
+    private void resetCurrentLevel() {
+        if (currentLevel == null) {
+            return;
+        }
+
+        currentLevel.clearPlacedBlocks();
+        palette = currentLevel.makePalette();
+        tuneRecorder = new TuneRecorder();
+
+        b = new Ball(currentLevel.getBallSpawnX(), currentLevel.getBallSpawnY());
+        b.setNoteBlockListener(this);
     }
 
 
@@ -122,9 +125,9 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
             // Level 1 button, change state to level 1 when user presses button
             if (x >= GameView.LEVEL1_X && x <= GameView.LEVEL1_X + GameView.LEVEL1_W
                     && y >= GameView.LEVEL1_Y && y <= GameView.LEVEL1_Y + GameView.LEVEL1_H) {
+                loadLevel(Level.makeLevel1());
                 state = STATE_LEVEL1;
                 window.repaint();
-                return;
             }
         }
     }
@@ -139,7 +142,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
     public void mouseReleased(MouseEvent e) {
         if (dragging != null) {
-            currentLevel.addObstacle(dragging); // place it
+            currentLevel.addPlacedNoteBlock(dragging); // place only as player-built block // place it
             b.setNoteBlockListener(this);        // re-register listener
             dragging = null;
             window.repaint();
