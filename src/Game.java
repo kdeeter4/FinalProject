@@ -57,16 +57,35 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
         new Timer(16, this).start();
 
-        // Build level — simple layout, guaranteed winnable
-        // Goal sits at bottom-right. Ball starts stationary at top-left.
-        // A fixed grey shelf catches the first drop; three pre-placed note
-        // blocks (C4 → E4 → G4) form a staircase path to the goal.
-        // Players can add extra blocks from the sidebar but the default
-        // layout already wins if left as-is.
+        // Build level — designed puzzle layout.
+        // Ball drops straight down from (250, 50). Fixed shelves create
+        // narrow gaps the player must bridge with note blocks to reroute
+        // the ball across the canvas to the goal at bottom-right.
+        // Target melody: C4 → E4 → G4 → C5 (rising arpeggio, resolves an octave).
         currentLevel = new Level(new Color(240, 245, 255), new Rectangle(820, 870, 80, 80));
 
-        // Fixed plain shelf — first landing pad
-        currentLevel.addObstacle(new Obstacle(80, 380, 220, 20, new Color(80, 80, 80)));
+        Color shelf  = new Color(70, 80, 110);   // dark slate platforms
+        Color accent = new Color(150, 110, 90);  // warm wood-tone walls
+
+        // ── Top section ─────────────────────────────────────
+        // Catch shelf for the initial drop, with a gap on the right
+        currentLevel.addObstacle(new Obstacle( 80, 220, 200, 18, shelf));
+        // Right wall stub forces the ball to bounce back left if it goes too far right
+        currentLevel.addObstacle(new Obstacle(620, 220, 200, 18, shelf));
+
+        // ── Middle section ──────────────────────────────────
+        // Vertical wall on the left to contain the ball
+        currentLevel.addObstacle(new Obstacle( 50, 400,  18, 200, accent));
+        // Floating mid shelf
+        currentLevel.addObstacle(new Obstacle(350, 450, 220, 18, shelf));
+        // Right wall stub on the middle level
+        currentLevel.addObstacle(new Obstacle(740, 520,  18, 180, accent));
+
+        // ── Lower section ───────────────────────────────────
+        // Long catch shelf with a gap before the goal — ball must clear this gap
+        currentLevel.addObstacle(new Obstacle(150, 720, 500, 18, shelf));
+        // Small ramp before the goal
+        currentLevel.addObstacle(new Obstacle(700, 820, 100, 18, shelf));
 
         // Build sidebar palette
         palette = new ArrayList<>();
@@ -79,11 +98,12 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
         b.setNoteBlockListener(this);
 
-        // Target tune matches the three pre-placed blocks in order
+        // Target melody: C major arpeggio rising an octave
         Tune.NoteEvent[] target = {
                 new Tune.NoteEvent(new Note("C4"), 400, 100),
                 new Tune.NoteEvent(new Note("E4"), 400, 100),
                 new Tune.NoteEvent(new Note("G4"), 400, 100),
+                new Tune.NoteEvent(new Note("C5"), 400, 100),
         };
         currentLevel.setTargetTune(new Tune(target));
     }
