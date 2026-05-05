@@ -6,6 +6,9 @@ public class Ball {
     private double ypos;
     private double dx;
     private double dy;
+    // Remember start position so we can reset the ball if it goes out of bounds
+    private final double startX;
+    private final double startY;
     private NoteBlockListener noteListener;
     // Magic Numbers
     public static final int SIZE = 35;
@@ -15,11 +18,34 @@ public class Ball {
     private static final double STOP_SPEED = 1.0;
     // Constructor
     public Ball(double x, double y) {
-        // testing sample velocity
         xpos = x;
         ypos = y;
+        startX = x;
+        startY = y;
         dx = 0;
-        dy = -20;
+        dy = 0;   // stationary until launch() is called
+    }
+
+    /** Snaps the ball back to its starting position, motionless. */
+    public void reset() {
+        xpos = startX;
+        ypos = startY;
+        dx = 0;
+        dy = 0;
+    }
+
+    /** True if the ball has left the visible play area. */
+    public boolean isOutOfBounds() {
+        return xpos + SIZE < 0
+                || xpos > GameView.WINDOW_WIDTH
+                || ypos > GameView.WINDOW_HEIGHT
+                || ypos + SIZE < 0;
+    }
+
+    /** Called when the player presses Play — gives the ball its initial kick. */
+    public void launch() {
+        dx = 0;
+        dy = 0;
     }
     // Every tick where the ball moves, takes in level to move and see when bounce occurs
     public void tickStep(Level level) {
@@ -30,40 +56,10 @@ public class Ball {
         double nextX = xpos + dx;
         double nextY = ypos + dy;
 
-        // Left wall
-        if (nextX < 0) {
-            double overshoot = -nextX;
-            xpos = overshoot;
-            dx = -dx;
-        } else if (nextX + SIZE > GameView.WINDOW_WIDTH) {
-            double overshoot = nextX + SIZE - GameView.WINDOW_WIDTH;
-            xpos = GameView.WINDOW_WIDTH - SIZE - overshoot;
-            dx = -dx;
-        } else {
-            xpos = nextX;
-            // If no collisions, just move ball normally
-        }
-
-        // Ceiling
-        if (nextY < 0) {
-            double overshoot = -nextY;
-            dy = -dy * BOUNCE;
-            ypos = overshoot * BOUNCE;
-        }
-        // Floor
-        else if (nextY + SIZE > GameView.WINDOW_HEIGHT) {
-            double overshoot = nextY + SIZE - GameView.WINDOW_HEIGHT;
-            dy = -dy * BOUNCE;
-            ypos = GameView.WINDOW_HEIGHT - SIZE - overshoot * BOUNCE;
-
-            if (Math.abs(dy) < STOP_SPEED) {
-                dy = 0;
-                ypos = GameView.WINDOW_HEIGHT - SIZE;
-            }
-        } else {
-            // If no collisions, just move ball normally
-            ypos = nextY;
-        }
+        // No wall/floor/ceiling bouncing — ball passes through edges.
+        // Game checks for out-of-bounds and resets the ball.
+        xpos = nextX;
+        ypos = nextY;
 
         // Collision with obstacles
         if (level != null) {
