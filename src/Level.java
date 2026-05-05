@@ -112,6 +112,10 @@ public class Level {
         return getAllObstacles();
     }
 
+    public void addObstacle(Obstacle obstacle) {
+        fixedObstacles.add(obstacle);
+    }
+
     public List<NoteBlock> makePalette() {
         List<NoteBlock> palette = new ArrayList<>();
         for (int i = 0; i < paletteNotes.size(); i++) {
