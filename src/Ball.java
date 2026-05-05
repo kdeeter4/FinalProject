@@ -26,7 +26,7 @@ public class Ball {
         dy = 0;   // stationary until launch() is called
     }
 
-    /** Snaps the ball back to its starting position, motionless. */
+    // Snaps the ball back to its starting position, motionless.
     public void reset() {
         xpos = startX;
         ypos = startY;
@@ -34,7 +34,7 @@ public class Ball {
         dy = 0;
     }
 
-    /** True if the ball has left the visible play area. */
+    // True if the ball has left the visible play area.
     public boolean isOutOfBounds() {
         return xpos + SIZE < 0
                 || xpos > GameView.WINDOW_WIDTH
@@ -42,11 +42,7 @@ public class Ball {
                 || ypos + SIZE < 0;
     }
 
-    /** Called when the player presses Play — gives the ball its initial kick. */
-    public void launch() {
-        dx = 0;
-        dy = 0;
-    }
+
     // Every tick where the ball moves, takes in level to move and see when bounce occurs
     public void tickStep(Level level) {
         // Gravity applies

@@ -66,8 +66,7 @@ public class GameView extends JFrame {
 
     public JPanel getPanel() { return panel; }
 
-    // ── Inner panel ───────────────────────────────────────────────────────────
-
+    // Inner panel for the jPanel tools and paints screens
     private class GamePanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
@@ -79,7 +78,7 @@ public class GameView extends JFrame {
             } else if (st == Game.STATE_SCORE_SCREEN) {
                 drawScoreScreen(g, backend.getLastScore());
             } else if (st >= Game.STATE_LEVEL1_SETUP) {
-                drawLevel1(g);
+                drawLevel(g);
             } else {
                 drawLevelSelect(g, 0);
                 if (st == Game.STATE_INFO) {
@@ -89,12 +88,13 @@ public class GameView extends JFrame {
         }
     }
 
-    // ── Level select ──────────────────────────────────────────────────────────
-
+    // Level select screen
     private void drawLevelSelect(Graphics g, int dy) {
+        // Background
         g.setColor(new Color(220, 230, 255));
         g.fillRect(0, dy, WINDOW_WIDTH, WINDOW_HEIGHT);
 
+        // Select level text
         g.setColor(new Color(30, 30, 80));
         g.setFont(new Font("Arial", Font.BOLD, 42));
         FontMetrics fm = g.getFontMetrics();
@@ -121,20 +121,22 @@ public class GameView extends JFrame {
                 dy + LEVEL1_Y + LEVEL1_H / 2 + 10);
     }
 
-    // ── Instruction overlay ───────────────────────────────────────────────────
-
+    // Instructions
     private void drawInstructionOverlay(Graphics g, int dy) {
         Graphics2D g2d = (Graphics2D) g;
 
+        // Background
         g2d.setColor(new Color(0, 0, 0, 130));
         g2d.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
+        // Draws overlay
         g2d.setColor(Color.WHITE);
         g2d.fillRoundRect(OVERLAY_X, dy + OVERLAY_Y, OVERLAY_W, OVERLAY_H, 20, 20);
         g2d.setColor(new Color(80, 80, 120));
         g2d.setStroke(new BasicStroke(2));
         g2d.drawRoundRect(OVERLAY_X, dy + OVERLAY_Y, OVERLAY_W, OVERLAY_H, 20, 20);
 
+        // Writes header text
         g.setColor(new Color(30, 30, 80));
         g.setFont(new Font("Arial", Font.BOLD, 30));
         FontMetrics fm = g.getFontMetrics();
@@ -143,7 +145,7 @@ public class GameView extends JFrame {
 
         g.setColor(new Color(180, 180, 220));
         g.drawLine(OVERLAY_X + 30, dy + OVERLAY_Y + 65, OVERLAY_X + OVERLAY_W - 30, dy + OVERLAY_Y + 65);
-
+        // Writes instruction text
         g.setColor(new Color(40, 40, 40));
         g.setFont(new Font("Arial", Font.PLAIN, 18));
         String[] lines = {
@@ -177,9 +179,9 @@ public class GameView extends JFrame {
                 dy + CLOSE_BTN_Y + CLOSE_BTN_SIZE - 9);
     }
 
-    // ── Level 1 (play area) ───────────────────────────────────────────────────
-
-    private void drawLevel1(Graphics g) {
+    // Draws a level
+    private void drawLevel(Graphics g) {
+        // Gets the current level and draws it from the level class
         Level level = backend.getCurrentLevel();
         if (level != null) level.draw(g);
 
@@ -190,6 +192,7 @@ public class GameView extends JFrame {
             backend.getDragging().draw(g);
         }
 
+        // Draws sidebar and melody
         drawSidebar(g);
         drawMelodyHUD(g);
 
@@ -208,8 +211,7 @@ public class GameView extends JFrame {
         }
     }
 
-    // ── Sidebar ───────────────────────────────────────────────────────────────
-
+    // Sidebar
     private void drawSidebar(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -313,8 +315,7 @@ public class GameView extends JFrame {
         }
     }
 
-    // ── Melody HUD ────────────────────────────────────────────────────────────
-
+    // Melody hud
     private void drawMelodyHUD(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -393,8 +394,7 @@ public class GameView extends JFrame {
         return note.octave * 12 + (idx >= 0 ? semitones[idx] : 0);
     }
 
-    // ── Win screen ────────────────────────────────────────────────────────────
-
+    // Win screen
     private void drawWinScreen(Graphics g, int score) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -486,7 +486,7 @@ public class GameView extends JFrame {
         drawResultButton(g2d, "Try Again", true);
     }
 
-    /** Draws the shared action button on result screens. */
+    // Draws the shared action button on result screens.
     private void drawResultButton(Graphics2D g2d, String label, boolean isRetry) {
         // Shadow
         g2d.setColor(new Color(0, 0, 0, 80));
