@@ -107,13 +107,16 @@ public class Level {
         return all;
     }
 
+    public List<Note> getPaletteNotes() { return new ArrayList<>(paletteNotes); }
+
     // Keep this so Ball.tickStep(...) does not need to change.
     public List<Obstacle> getObstacles() {
         return getAllObstacles();
     }
 
+    // Alias so main's Game.java doesn't need changes
     public void addObstacle(Obstacle obstacle) {
-        fixedObstacles.add(obstacle);
+        addFixedObstacle(obstacle);
     }
 
     public List<NoteBlock> makePalette() {

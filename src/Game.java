@@ -130,6 +130,10 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     public int getRestartBtnY() {
         return getPlayBtnY() + CLEAR_BTN_H + SIDEBAR_PAD;
     }
+    public int getClearBtnY()   { return SIDEBAR_PAD + palette.size() * SIDEBAR_SLOT_H + SIDEBAR_PAD; }
+    public int getPreviewBtnY() { return getClearBtnY()   + CLEAR_BTN_H + SIDEBAR_PAD; }
+    public int getPlayBtnY()    { return getPreviewBtnY() + CLEAR_BTN_H + SIDEBAR_PAD; }
+    public int getRestartBtnY() { return getPlayBtnY()    + CLEAR_BTN_H + SIDEBAR_PAD; }
     private void loadLevel(Level level) {
         currentLevel = level;
         palette = currentLevel.makePalette();
@@ -137,6 +141,15 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
         b = new Ball(currentLevel.getBallSpawnX(), currentLevel.getBallSpawnY());
         b.setNoteBlockListener(this);
+
+        // Build sidebar palette at correct x position
+        palette = new ArrayList<>();
+        List<Note> notes = currentLevel.getPaletteNotes(); // see Level change below
+        for (int i = 0; i < notes.size(); i++) {
+            int slotY = SIDEBAR_PAD + i * SIDEBAR_SLOT_H;
+            palette.add(new NoteBlock(notes.get(i), 400,
+                    SIDEBAR_X + SIDEBAR_PAD, slotY + SIDEBAR_PAD));
+        }
     }
 
     private void resetCurrentLevel() {
