@@ -2,6 +2,8 @@ import java.awt.*;
 
 public class Ball {
     // Movement info
+    private final double startX;
+    private final double startY;
     private double xpos;
     private double ypos;
     private double dx;
@@ -18,8 +20,24 @@ public class Ball {
         // testing sample velocity
         xpos = x;
         ypos = y;
+        startX = x;
+        startY = y;
         dx = 0;
-        dy = -20;
+        dy = 0;
+    }
+
+    public void reset() {
+        xpos = startX;
+        ypos = startY;
+        dx = 0;
+        dy = 0;
+    }
+
+    public boolean isOutOfBounds() {
+        return xpos + SIZE < 0
+                || xpos > GameView.WINDOW_WIDTH
+                || ypos > GameView.WINDOW_HEIGHT
+                || ypos + SIZE < 0;
     }
     // Every tick where the ball moves, takes in level to move and see when bounce occurs
     public void tickStep(Level level) {

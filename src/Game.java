@@ -14,9 +14,11 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     public static final double STATE_INFO = -1.0;
     public static final double STATE_MENU = 0.0;
     public static final double STATE_LEVEL1 = 1.01;
+    public static final double STATE_LEVEL1_SETUP = 1.00;
     public static final double STATE_LEVEL2 = 1.02;
     public static final double STATE_WIN = 2;
     public static final double STATE_SCORE_SCREEN = 3;
+    ;
 
     // Instance variables
     private GameView window;
@@ -28,6 +30,18 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     private int dragOffsetX, dragOffsetY;
     private List<NoteBlock> palette; // available blocks on the side/ available blocks on the side     // available blocks on the side
     private TuneRecorder tuneRecorder;
+    private int     lastScore     = 0;
+    private boolean previewPlaying = false;
+
+
+
+    public static final int SIDEBAR_X      = 910;
+    public static final int SIDEBAR_W      = 90;
+    public static final int SIDEBAR_SLOT_H = 70;
+    public static final int SIDEBAR_PAD    = 10;
+    public static final int CLEAR_BTN_X   = SIDEBAR_X + 5;
+    public static final int CLEAR_BTN_W   = SIDEBAR_W - 10;
+    public static final int CLEAR_BTN_H   = 36;
 
     // Constructor
     public Game() {
@@ -63,13 +77,24 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     public boolean isInLevel() {
         return state >= 1;
     }
+    public int getClearBtnY()   { return SIDEBAR_PAD + palette.size() * SIDEBAR_SLOT_H + SIDEBAR_PAD; }
+    public int getPreviewBtnY() { return getClearBtnY()   + CLEAR_BTN_H + SIDEBAR_PAD; }
+    public int getPlayBtnY()    { return getPreviewBtnY() + CLEAR_BTN_H + SIDEBAR_PAD; }
+    public int getRestartBtnY() { return getPlayBtnY()    + CLEAR_BTN_H + SIDEBAR_PAD; }
     private void loadLevel(Level level) {
         currentLevel = level;
-        palette = currentLevel.makePalette();
         tuneRecorder = new TuneRecorder();
-
         b = new Ball(currentLevel.getBallSpawnX(), currentLevel.getBallSpawnY());
         b.setNoteBlockListener(this);
+
+        // Build sidebar palette at correct x position
+        palette = new ArrayList<>();
+        List<Note> notes = currentLevel.getPaletteNotes(); // see Level change below
+        for (int i = 0; i < notes.size(); i++) {
+            int slotY = SIDEBAR_PAD + i * SIDEBAR_SLOT_H;
+            palette.add(new NoteBlock(notes.get(i), 400,
+                    SIDEBAR_X + SIDEBAR_PAD, slotY + SIDEBAR_PAD));
+        }
     }
 
     private void resetCurrentLevel() {
@@ -152,20 +177,16 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (state >= 1.0) {
+        if (state == STATE_LEVEL1) {   // only tick physics when ball is live
             b.tickStep(currentLevel);
-            // Check if ball reached the target
-            Rectangle targetRect = currentLevel.getTarget();
             Rectangle ballRect = new Rectangle((int)b.getXpos(), (int)b.getYpos(), Ball.SIZE, Ball.SIZE);
-
-            if (ballRect.intersects(targetRect)) {
-                Tune playerTune = tuneRecorder.buildTune();
-                int score = currentLevel.getTargetTune().score(playerTune);
-                if (score >= 95) {
-                    state = STATE_WIN;
-                } else {
-                    state = STATE_SCORE_SCREEN; // show score, let them retry
-                }
+            if (ballRect.intersects(currentLevel.getTarget())) {
+                lastScore = currentLevel.getTargetTune().score(tuneRecorder.buildTune());
+                state = (lastScore >= 95) ? STATE_WIN : STATE_SCORE_SCREEN;
+            } else if (b.isOutOfBounds()) {
+                b.reset();
+                tuneRecorder.reset();
+                state = STATE_LEVEL1_SETUP;
             }
         }
         window.repaint();
@@ -181,6 +202,19 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
             ((javax.swing.Timer) e2.getSource()).stop();
         }).start();
     }
+
+    private void clearBoard() {
+        currentLevel.clearPlacedBlocks();
+        tuneRecorder.reset();
+        window.repaint();
+    }
+
+    public List<NoteBlock> getPalette()       { return palette; }
+    public NoteBlock       getDragging()      { return dragging; }
+    public boolean         isSetupMode()      { return state == STATE_LEVEL1_SETUP; }
+    public int             getLastScore()     { return lastScore; }
+    public TuneRecorder    getTuneRecorder()  { return tuneRecorder; }
+    public boolean         isPreviewPlaying() { return previewPlaying; }
 
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}

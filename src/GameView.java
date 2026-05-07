@@ -31,6 +31,12 @@ public class GameView extends JFrame {
     public static final int CLOSE_BTN_X = OVERLAY_X + OVERLAY_W - 42;
     public static final int CLOSE_BTN_Y = OVERLAY_Y + 10;
     public static final int CLOSE_BTN_SIZE = 30;
+
+    // Add these to GameView — main's mousePressed references them for score/win screens:
+    public static final int RETRY_BTN_X = 350;
+    public static final int RETRY_BTN_Y = 550;
+    public static final int RETRY_BTN_W = 300;
+    public static final int RETRY_BTN_H =  60;
     // Need backend and GamePanel
     private Game backend;
     private GamePanel panel;
