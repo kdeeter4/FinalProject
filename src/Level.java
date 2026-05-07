@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Level {
+
     private final Color backgroundColor;
     private final Rectangle target;
     private final Tune targetTune;
@@ -11,7 +12,7 @@ public class Level {
     private final int ballSpawnY;
 
     private final List<Obstacle> fixedObstacles;
-    private final List<NoteBlock> placedBlocks;
+    private final List<Obstacle> placedBlocks;
     private final List<Note> paletteNotes;
 
     public Level(Color backgroundColor, Rectangle target, Tune targetTune,
@@ -26,6 +27,7 @@ public class Level {
         this.placedBlocks = new ArrayList<>();
     }
 
+    // Factory for Level 1, using your layout + target tune
     public static Level makeLevel1() {
         Tune.NoteEvent[] target = {
                 new Tune.NoteEvent(new Note("C4"), 400, 100),
@@ -85,6 +87,10 @@ public class Level {
         placedBlocks.add(block);
     }
 
+    public void removePlacedBlock(int index) {
+        placedBlocks.remove(index);
+    }
+
     public void clearPlacedBlocks() {
         placedBlocks.clear();
     }
@@ -97,7 +103,7 @@ public class Level {
         return new ArrayList<>(fixedObstacles);
     }
 
-    public List<NoteBlock> getPlacedBlocks() {
+    public List<Obstacle> getPlacedBlocks() {
         return new ArrayList<>(placedBlocks);
     }
 
@@ -107,7 +113,9 @@ public class Level {
         return all;
     }
 
-    public List<Note> getPaletteNotes() { return new ArrayList<>(paletteNotes); }
+    public List<Note> getPaletteNotes() {
+        return new ArrayList<>(paletteNotes);
+    }
 
     // Keep this so Ball.tickStep(...) does not need to change.
     public List<Obstacle> getObstacles() {

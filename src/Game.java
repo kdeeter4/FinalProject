@@ -47,7 +47,6 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
     // Constructor
     public Game() {
-        b            = new Ball(BALL_START_X, BALL_START_Y);
         window       = new GameView(this);
         state        = STATE_INFO;
         tuneRecorder = new TuneRecorder();
@@ -57,50 +56,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
         new Timer(16, this).start();
 
-        // Builds the level
-        currentLevel = new Level(new Color(240, 245, 255), new Rectangle(820, 870, 80, 80));
-
-        Color shelf  = new Color(70, 80, 110);   // dark slate platforms
-        Color accent = new Color(150, 110, 90);  // warm wood-tone walls
-
-        // Catch shelf for the initial drop, with a gap on the right
-        currentLevel.addObstacle(new Obstacle( 80, 220, 200, 18, shelf));
-        // Right wall stub forces the ball to bounce back left if it goes too far right
-        currentLevel.addObstacle(new Obstacle(620, 220, 200, 18, shelf));
-
-        // Vertical wall on the left to contain the ball
-        currentLevel.addObstacle(new Obstacle( 50, 400,  18, 200, accent));
-        // Floating mid shelf
-        currentLevel.addObstacle(new Obstacle(350, 450, 220, 18, shelf));
-        // Right wall stub on the middle level
-        currentLevel.addObstacle(new Obstacle(740, 520,  18, 180, accent));
-
-        // Long catch shelf with a gap before the goal — ball must clear this gap
-        currentLevel.addObstacle(new Obstacle(150, 720, 500, 18, shelf));
-        // Small ramp before the goal
-        currentLevel.addObstacle(new Obstacle(700, 820, 100, 18, shelf));
-
-        // Build sidebar palette
         palette = new ArrayList<>();
-        String[] noteNames = {"C4","D4","E4","F4","G4","A4","B4"};
-
-        // Adds each note to the pallette
-        for (int i = 0; i < noteNames.length; i++) {
-            int slotY = SIDEBAR_PAD + i * SIDEBAR_SLOT_H;
-            palette.add(new NoteBlock(new Note(noteNames[i]), 400,
-                    SIDEBAR_X + SIDEBAR_PAD, slotY + SIDEBAR_PAD));
-        }
-
-        b.setNoteBlockListener(this);
-
-        // Target melody: C major arpeggio rising an octave
-        Tune.NoteEvent[] target = {
-                new Tune.NoteEvent(new Note("C4"), 400, 100),
-                new Tune.NoteEvent(new Note("E4"), 400, 100),
-                new Tune.NoteEvent(new Note("G4"), 400, 100),
-                new Tune.NoteEvent(new Note("C5"), 400, 100),
-        };
-        currentLevel.setTargetTune(new Tune(target));
     }
     // Getters
     public double          getState()        { return state; }
@@ -112,39 +68,26 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     public boolean         isSetupMode()     { return state == STATE_LEVEL1_SETUP; }
 
     // Clear button coordinates
-    public int getClearBtnY() {
-        return SIDEBAR_PAD + palette.size() * SIDEBAR_SLOT_H + SIDEBAR_PAD;
-    }
+    public int getClearBtnY()   { return SIDEBAR_PAD + palette.size() * SIDEBAR_SLOT_H + SIDEBAR_PAD; }
 
     // Y coordinate of the preview button — sits directly below the clear button.
-    public int getPreviewBtnY() {
-        return getClearBtnY() + CLEAR_BTN_H + SIDEBAR_PAD;
-    }
+    public int getPreviewBtnY() { return getClearBtnY()   + CLEAR_BTN_H + SIDEBAR_PAD; }
 
     // Y coordinate of the Play button — sits below the preview button.
-    public int getPlayBtnY() {
-        return getPreviewBtnY() + CLEAR_BTN_H + SIDEBAR_PAD;
-    }
+    public int getPlayBtnY()    { return getPreviewBtnY() + CLEAR_BTN_H + SIDEBAR_PAD; }
 
     // Y coordinate of the Restart button — sits below the play button.
-    public int getRestartBtnY() {
-        return getPlayBtnY() + CLEAR_BTN_H + SIDEBAR_PAD;
-    }
-    public int getClearBtnY()   { return SIDEBAR_PAD + palette.size() * SIDEBAR_SLOT_H + SIDEBAR_PAD; }
-    public int getPreviewBtnY() { return getClearBtnY()   + CLEAR_BTN_H + SIDEBAR_PAD; }
-    public int getPlayBtnY()    { return getPreviewBtnY() + CLEAR_BTN_H + SIDEBAR_PAD; }
     public int getRestartBtnY() { return getPlayBtnY()    + CLEAR_BTN_H + SIDEBAR_PAD; }
+
     private void loadLevel(Level level) {
         currentLevel = level;
-        palette = currentLevel.makePalette();
         tuneRecorder = new TuneRecorder();
-
         b = new Ball(currentLevel.getBallSpawnX(), currentLevel.getBallSpawnY());
         b.setNoteBlockListener(this);
 
-        // Build sidebar palette at correct x position
+        // Build sidebar palette with correct on-screen x position
         palette = new ArrayList<>();
-        List<Note> notes = currentLevel.getPaletteNotes(); // see Level change below
+        List<Note> notes = currentLevel.getPaletteNotes();
         for (int i = 0; i < notes.size(); i++) {
             int slotY = SIDEBAR_PAD + i * SIDEBAR_SLOT_H;
             palette.add(new NoteBlock(notes.get(i), 400,
@@ -158,11 +101,19 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
         }
 
         currentLevel.clearPlacedBlocks();
-        palette = currentLevel.makePalette();
         tuneRecorder = new TuneRecorder();
 
         b = new Ball(currentLevel.getBallSpawnX(), currentLevel.getBallSpawnY());
         b.setNoteBlockListener(this);
+
+        // Rebuild sidebar palette at correct x position
+        palette = new ArrayList<>();
+        List<Note> notes = currentLevel.getPaletteNotes();
+        for (int i = 0; i < notes.size(); i++) {
+            int slotY = SIDEBAR_PAD + i * SIDEBAR_SLOT_H;
+            palette.add(new NoteBlock(notes.get(i), 400,
+                    SIDEBAR_X + SIDEBAR_PAD, slotY + SIDEBAR_PAD));
+        }
     }
 
     // Checks if it is playing
@@ -221,15 +172,13 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
             // Pick up an already-placed NoteBlock (only in setup)
             if (state == STATE_LEVEL1_SETUP) {
-                List<Obstacle> obs = currentLevel.getObstacles();
-                // Iterate in reverse so the top-most block is grabbed first
-                for (int i = obs.size() - 1; i >= 0; i--) {
-                    Obstacle o = obs.get(i);
+                List<Obstacle> placed = currentLevel.getPlacedBlocks();
+                for (int i = placed.size() - 1; i >= 0; i--) {
+                    Obstacle o = placed.get(i);
                     if (o instanceof NoteBlock && o.getBounds().contains(x, y)) {
                         NoteBlock nb = (NoteBlock) o;
-                        obs.remove(i);   // lift it out of the level
-                        dragging    = new NoteBlock(nb.getNote(), nb.getDurationMs(),
-                                x - 25, y - 25);
+                        currentLevel.removePlacedBlock(i);   // see note below
+                        dragging = new NoteBlock(nb.getNote(), nb.getDurationMs(), x - 25, y - 25);
                         dragOffsetX = 25;
                         dragOffsetY = 25;
                         return;
@@ -264,9 +213,8 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
             if (x >= GameView.LEVEL1_X && x <= GameView.LEVEL1_X + GameView.LEVEL1_W
                     && y >= GameView.LEVEL1_Y && y <= GameView.LEVEL1_Y + GameView.LEVEL1_H) {
                 loadLevel(Level.makeLevel1());
-                state = STATE_LEVEL1;
+                state = STATE_LEVEL1_SETUP;
                 window.repaint();
-                state = STATE_LEVEL1_SETUP; window.repaint();  // enter setup, not live
             }
         // Retry button
         } else if (state == STATE_SCORE_SCREEN) {
@@ -298,7 +246,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     public void mouseReleased(MouseEvent e) {
         if (dragging != null) {
             if (e.getX() < SIDEBAR_X) {   // only place inside the play area
-                currentLevel.addObstacle(dragging);
+                currentLevel.addPlacedNoteBlock(dragging);;
                 b.setNoteBlockListener(this);
             }
             dragging = null;
@@ -342,12 +290,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
     // Clears the board of all the notebocks
     private void clearBoard() {
-        List<Obstacle> keep = new ArrayList<>();
-        for (Obstacle obs : currentLevel.getObstacles()) {
-            if (!(obs instanceof NoteBlock)) keep.add(obs);
-        }
-        currentLevel.getObstacles().clear();
-        currentLevel.getObstacles().addAll(keep);
+        currentLevel.clearPlacedBlocks();
         tuneRecorder.reset();
         window.repaint();
     }
@@ -380,10 +323,8 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
 
     // Reset the level
     public void retryLevel() {
-        b = new Ball(BALL_START_X, BALL_START_Y);  // fresh stationary ball
-        b.setNoteBlockListener(this);
-        tuneRecorder.reset();
-        state = STATE_LEVEL1_SETUP;   // back to setup so player can adjust blocks
+        resetCurrentLevel();
+        state = STATE_LEVEL1_SETUP;
         window.repaint();
     }
 
