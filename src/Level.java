@@ -37,24 +37,20 @@ public class Level {
 
         Level level = new Level(
                 Color.WHITE,
-                new Rectangle(850, 850, 100, 100),
+                new Rectangle(600, 680, 200, 120),   // goal: bottom-right, fully visible
                 new Tune(target),
-                250,
-                50,
+                200,   // ballSpawnX
+                100,   // ballSpawnY — below the HUD
                 Arrays.asList(
-                        new Note("C4"),
-                        new Note("D4"),
-                        new Note("E4"),
-                        new Note("F4"),
-                        new Note("G4"),
-                        new Note("A4"),
-                        new Note("B4")
+                        new Note("C4"), new Note("D4"), new Note("E4"),
+                        new Note("F4"), new Note("G4"), new Note("A4"), new Note("B4")
                 )
         );
 
-        level.addFixedObstacle(new Obstacle(250, 700, 200, 25, Color.BLACK));
-        level.addFixedObstacle(new Obstacle(500, 550, 180, 25, Color.BLACK));
-        level.addFixedObstacle(new Obstacle(700, 400, 150, 25, Color.BLACK));
+        // Three staggered platforms leading toward goal
+        level.addFixedObstacle(new Obstacle(150, 560, 170, 20, Color.BLACK));
+        level.addFixedObstacle(new Obstacle(370, 430, 160, 20, Color.BLACK));
+        level.addFixedObstacle(new Obstacle(530, 310, 130, 20, Color.BLACK));
 
         return level;
     }

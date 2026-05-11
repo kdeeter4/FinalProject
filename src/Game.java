@@ -20,15 +20,18 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     public static final double STATE_SCORE_SCREEN =  3.0;
 
     // Sidebar geometry (shared with GameView for hit-testing)
-    public static final int SIDEBAR_X      = 910;
-    public static final int SIDEBAR_W      = 90;
-    public static final int SIDEBAR_SLOT_H = 70;
+    public static final int SIDEBAR_X    = 720;
+    public static final int SIDEBAR_W    = 80;
+    public static final int SIDEBAR_SLOT_H = 88;
     public static final int SIDEBAR_PAD    = 10;
 
     // Clear-board button
     public static final int CLEAR_BTN_X = SIDEBAR_X + 5;
     public static final int CLEAR_BTN_W = SIDEBAR_W - 10;
     public static final int CLEAR_BTN_H = 36;
+
+    // Win percent
+    public static final int MIN_WIN = 85;
 
     // Instance variables
     private GameView        window;
@@ -122,7 +125,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     // Mouse code
     @Override
     public void mousePressed(MouseEvent e) {
-        int x = e.getX(), y = e.getY();
+        int x = toLogical(e.getX()), y = toLogical(e.getY());
 
         // Setup and live play share the same sidebar/palette interactions
         if (state == STATE_LEVEL1_SETUP || state == STATE_LEVEL1) {
@@ -236,7 +239,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     public void mouseDragged(MouseEvent e) {
         if (dragging != null) {
             dragging = new NoteBlock(dragging.getNote(), dragging.getDurationMs(),
-                    e.getX() - dragOffsetX, e.getY() - dragOffsetY);
+                    toLogical(e.getX()) - dragOffsetX, toLogical(e.getY()) - dragOffsetY);
             window.repaint();
         }
     }
@@ -245,7 +248,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     @Override
     public void mouseReleased(MouseEvent e) {
         if (dragging != null) {
-            if (e.getX() < SIDEBAR_X) {   // only place inside the play area
+            if (toLogical(e.getX()) < SIDEBAR_X) {   // only place inside the play area
                 currentLevel.addPlacedNoteBlock(dragging);;
                 b.setNoteBlockListener(this);
             }
@@ -262,7 +265,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
             Rectangle ballRect = new Rectangle((int)b.getXpos(), (int)b.getYpos(), Ball.SIZE, Ball.SIZE);
             if (ballRect.intersects(currentLevel.getTarget())) {
                 lastScore = currentLevel.getTargetTune().score(tuneRecorder.buildTune());
-                state = (lastScore >= 95) ? STATE_WIN : STATE_SCORE_SCREEN;
+                state = (lastScore >= 85) ? STATE_WIN : STATE_SCORE_SCREEN;
             } else if (b.isOutOfBounds()) {
                 // Ball fell off the screen — reset like the restart button
                 b.reset();
@@ -326,6 +329,11 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
         resetCurrentLevel();
         state = STATE_LEVEL1_SETUP;
         window.repaint();
+    }
+
+    // Converts a screen mouse coordinate to logical 1000x1000 space
+    private int toLogical(int screenCoord) {
+        return (int)(screenCoord / GameView.SCALE);
     }
 
     // Expose recorder so GameView can read played notes for HUD

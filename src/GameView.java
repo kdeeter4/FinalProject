@@ -4,27 +4,36 @@ import javax.swing.*;
 
 public class GameView extends JFrame {
     // Window dimensions
-    public static final int LOGICAL_WIDTH  = 1000;
-    public static final int LOGICAL_HEIGHT = 1000;
-    public static final int WINDOW_WIDTH   = LOGICAL_WIDTH;
-    public static final int WINDOW_HEIGHT  = LOGICAL_HEIGHT;
+    // Game canvas is always 1000×1000 logical pixels
+    public static final int LOGICAL_WIDTH  = 800;
+    public static final int LOGICAL_HEIGHT = 800;
+
+    // The JFrame starts at this size; WINDOW_WIDTH/HEIGHT still refer to the canvas
+    public static final int WINDOW_WIDTH  = LOGICAL_WIDTH;
+    public static final int WINDOW_HEIGHT = LOGICAL_HEIGHT;
+
+    // Minimum window size (the canvas fits exactly at this size)
+    public static final int MIN_WIN = 800;
+    // Scale factor: logical 1000x1000 canvas drawn into 800x800 window
+    public static final double SCALE = (double) MIN_WIN / LOGICAL_WIDTH;
 
     // ? (help) button
-    public static final int HELP_BTN_CX     = 920;
+    public static final int HELP_BTN_CX     = 740;
     public static final int HELP_BTN_CY     = 55;
     public static final int HELP_BTN_RADIUS = 22;
 
     // Level 1 box
-    public static final int LEVEL1_X = 350;
-    public static final int LEVEL1_Y = 380;
+    public static final int LEVEL1_X = 250;
+    public static final int LEVEL1_Y = 320;
     public static final int LEVEL1_W = 300;
     public static final int LEVEL1_H = 100;
 
     // Instruction overlay
-    public static final int OVERLAY_X = 150;
-    public static final int OVERLAY_Y = 100;
-    public static final int OVERLAY_W = 700;
-    public static final int OVERLAY_H = 550;
+    // Instruction overlay — was 150/100/700/550, too wide for 800px canvas
+    public static final int OVERLAY_X = 60;
+    public static final int OVERLAY_Y = 60;
+    public static final int OVERLAY_W = 580;
+    public static final int OVERLAY_H = 630;
 
     // Close (X) button on overlay
     public static final int CLOSE_BTN_X    = OVERLAY_X + OVERLAY_W - 42;
@@ -38,7 +47,7 @@ public class GameView extends JFrame {
 
     // Shared retry / menu button on result screens
     public static final int RETRY_BTN_X = 350;
-    public static final int RETRY_BTN_Y = 680;
+    public static final int RETRY_BTN_Y = 600;
     public static final int RETRY_BTN_W = 300;
     public static final int RETRY_BTN_H = 60;
 
@@ -54,14 +63,14 @@ public class GameView extends JFrame {
         this.backend = backend;
         setTitle("Melody Ball");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+        setResizable(false);  // fixed size — no partial-canvas issues
 
         panel = new GamePanel();
-        panel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
         setContentPane(panel);
+
+        setVisible(true);
         pack();
         setLocationRelativeTo(null);
-        setVisible(true);
     }
 
     public JPanel getPanel() { return panel; }
@@ -71,20 +80,29 @@ public class GameView extends JFrame {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            double st = backend.getState();
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2d.scale(SCALE, SCALE);  // 0.8x — everything drawn at 1000x1000 fits in 800x800
 
+            double st = backend.getState();
             if (st == Game.STATE_WIN) {
-                drawWinScreen(g, backend.getLastScore());
+                drawWinScreen(g2d, backend.getLastScore());
             } else if (st == Game.STATE_SCORE_SCREEN) {
-                drawScoreScreen(g, backend.getLastScore());
+                drawScoreScreen(g2d, backend.getLastScore());
             } else if (st >= Game.STATE_LEVEL1_SETUP) {
-                drawLevel(g);
+                drawLevel(g2d);
             } else {
-                drawLevelSelect(g, 0);
+                drawLevelSelect(g2d, 0);
                 if (st == Game.STATE_INFO) {
-                    drawInstructionOverlay(g, 0);
+                    drawInstructionOverlay(g2d, 0);
                 }
             }
+            g2d.dispose();
+        }
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(MIN_WIN, MIN_WIN);  // 800x800
         }
     }
 
@@ -157,7 +175,7 @@ public class GameView extends JFrame {
                 "",
                 "  \u2022  Match the target melody shown at the top of the screen.",
                 "  \u2022  Get the ball to the green target area to finish.",
-                "  \u2022  You need a melody score of 95+ to win!",
+                "  \u2022  You need a melody score of " + Game.MIN_WIN + "+ to win!",
                 "",
                 "  \u2022  Use the Clear Board button to remove all placed blocks.",
                 "",
@@ -470,7 +488,7 @@ public class GameView extends JFrame {
         g2d.setColor(new Color(200, 180, 160));
         g2d.setFont(new Font("Arial", Font.BOLD, 32));
         fm = g2d.getFontMetrics();
-        String outOf = "out of 100  (need 95 to win)";
+        String outOf = "out of 100  (need "+ Game.MIN_WIN + " to win)";
         g2d.drawString(outOf, (WINDOW_WIDTH - fm.stringWidth(outOf)) / 2, 475);
 
         // Encouragement line
