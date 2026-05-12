@@ -4,27 +4,47 @@ import javax.swing.*;
 
 public class GameView extends JFrame {
     // Window dimensions
-    public static final int LOGICAL_WIDTH  = 1000;
-    public static final int LOGICAL_HEIGHT = 1000;
-    public static final int WINDOW_WIDTH   = LOGICAL_WIDTH;
-    public static final int WINDOW_HEIGHT  = LOGICAL_HEIGHT;
+    // Game canvas is always 1000×1000 logical pixels
+    public static final int LOGICAL_WIDTH  = 800;
+    public static final int LOGICAL_HEIGHT = 800;
+
+    // The JFrame starts at this size; WINDOW_WIDTH/HEIGHT still refer to the canvas
+    public static final int WINDOW_WIDTH  = LOGICAL_WIDTH;
+    public static final int WINDOW_HEIGHT = LOGICAL_HEIGHT;
+
+    // Minimum window size (the canvas fits exactly at this size)
+    public static final int MIN_WIN = 800;
+    // Scale factor: logical 1000x1000 canvas drawn into 800x800 window
+    public static final double SCALE = (double) MIN_WIN / LOGICAL_WIDTH;
 
     // ? (help) button
-    public static final int HELP_BTN_CX     = 920;
+    public static final int HELP_BTN_CX     = 740;
     public static final int HELP_BTN_CY     = 55;
     public static final int HELP_BTN_RADIUS = 22;
 
     // Level 1 box
-    public static final int LEVEL1_X = 350;
-    public static final int LEVEL1_Y = 380;
+    // Level select buttons — stacked vertically, centered
+    public static final int LEVEL1_X = 250;
+    public static final int LEVEL1_Y = 250;
     public static final int LEVEL1_W = 300;
-    public static final int LEVEL1_H = 100;
+    public static final int LEVEL1_H = 80;
+
+    public static final int LEVEL2_X = 250;
+    public static final int LEVEL2_Y = 370;
+    public static final int LEVEL2_W = 300;
+    public static final int LEVEL2_H = 80;
+
+    public static final int LEVEL3_X = 250;
+    public static final int LEVEL3_Y = 490;
+    public static final int LEVEL3_W = 300;
+    public static final int LEVEL3_H = 80;
 
     // Instruction overlay
-    public static final int OVERLAY_X = 150;
-    public static final int OVERLAY_Y = 100;
-    public static final int OVERLAY_W = 700;
-    public static final int OVERLAY_H = 550;
+    // Instruction overlay — was 150/100/700/550, too wide for 800px canvas
+    public static final int OVERLAY_X = 60;
+    public static final int OVERLAY_Y = 60;
+    public static final int OVERLAY_W = 580;
+    public static final int OVERLAY_H = 630;
 
     // Close (X) button on overlay
     public static final int CLOSE_BTN_X    = OVERLAY_X + OVERLAY_W - 42;
@@ -38,14 +58,14 @@ public class GameView extends JFrame {
 
     // Shared retry / menu button on result screens
     public static final int RETRY_BTN_X = 350;
-    public static final int RETRY_BTN_Y = 680;
+    public static final int RETRY_BTN_Y = 600;
     public static final int RETRY_BTN_W = 300;
     public static final int RETRY_BTN_H = 60;
 
     // Melody HUD
     private static final int HUD_Y          = 10;   // top of HUD strip
     private static final int HUD_CIRCLE_R   = 22;   // radius of each note circle
-    private static final int HUD_SPACING    = 58;   // centre-to-centre spacing
+    private static final int HUD_SPACING    = 55;   // centre-to-centre spacing
 
     private Game      backend;
     private GamePanel panel;
@@ -54,14 +74,14 @@ public class GameView extends JFrame {
         this.backend = backend;
         setTitle("Melody Ball");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+        setResizable(false);  // fixed size — no partial-canvas issues
 
         panel = new GamePanel();
-        panel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
         setContentPane(panel);
+
+        setVisible(true);
         pack();
         setLocationRelativeTo(null);
-        setVisible(true);
     }
 
     public JPanel getPanel() { return panel; }
@@ -71,20 +91,31 @@ public class GameView extends JFrame {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            double st = backend.getState();
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2d.scale(SCALE, SCALE);  // 0.8x — everything drawn at 1000x1000 fits in 800x800
 
+            double st = backend.getState();
             if (st == Game.STATE_WIN) {
-                drawWinScreen(g, backend.getLastScore());
+                drawWinScreen(g2d, backend.getLastScore());
             } else if (st == Game.STATE_SCORE_SCREEN) {
-                drawScoreScreen(g, backend.getLastScore());
-            } else if (st >= Game.STATE_LEVEL1_SETUP) {
-                drawLevel(g);
+                drawScoreScreen(g2d, backend.getLastScore());
+            } else if (st == Game.STATE_LEVEL1_SETUP || st == Game.STATE_LEVEL1
+                    || st == Game.STATE_LEVEL2_SETUP || st == Game.STATE_LEVEL2
+                    || st == Game.STATE_LEVEL3_SETUP || st == Game.STATE_LEVEL3) {
+                drawLevel(g2d);
             } else {
-                drawLevelSelect(g, 0);
+                drawLevelSelect(g2d, 0);
                 if (st == Game.STATE_INFO) {
-                    drawInstructionOverlay(g, 0);
+                    drawInstructionOverlay(g2d, 0);
                 }
             }
+            g2d.dispose();
+        }
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(MIN_WIN, MIN_WIN);  // 800x800
         }
     }
 
@@ -119,6 +150,24 @@ public class GameView extends JFrame {
         String lvl = "Level 1";
         g.drawString(lvl, LEVEL1_X + (LEVEL1_W - fm.stringWidth(lvl)) / 2,
                 dy + LEVEL1_Y + LEVEL1_H / 2 + 10);
+        // Level 2 box
+        g.setColor(new Color(80, 130, 200));
+        g.fillRoundRect(LEVEL2_X, dy + LEVEL2_Y, LEVEL2_W, LEVEL2_H, 18, 18);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 28));
+        fm = g.getFontMetrics();
+        String lvl2 = "Level 2";
+        g.drawString(lvl2, LEVEL2_X + (LEVEL2_W - fm.stringWidth(lvl2)) / 2,
+                dy + LEVEL2_Y + LEVEL2_H / 2 + 10);
+        // Level 3 box
+        g.setColor(new Color(200, 100, 50));
+        g.fillRoundRect(LEVEL3_X, dy + LEVEL3_Y, LEVEL3_W, LEVEL3_H, 18, 18);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 28));
+        fm = g.getFontMetrics();
+        String lvl3 = "Level 3";
+        g.drawString(lvl3, LEVEL3_X + (LEVEL3_W - fm.stringWidth(lvl3)) / 2,
+                dy + LEVEL3_Y + LEVEL3_H / 2 + 10);
     }
 
     // Instructions
@@ -157,7 +206,7 @@ public class GameView extends JFrame {
                 "",
                 "  \u2022  Match the target melody shown at the top of the screen.",
                 "  \u2022  Get the ball to the green target area to finish.",
-                "  \u2022  You need a melody score of 95+ to win!",
+                "  \u2022  You need a melody score of " + Game.MIN_WIN + "+ to win!",
                 "",
                 "  \u2022  Use the Clear Board button to remove all placed blocks.",
                 "",
@@ -196,6 +245,9 @@ public class GameView extends JFrame {
         drawSidebar(g);
         drawMelodyHUD(g);
 
+        // Exit-to-menu button — top-left, always visible during a level
+        drawExitButton((Graphics2D) g);
+
         // Setup-mode banner across the bottom of the play area
         if (backend.isSetupMode()) {
             Graphics2D g2d = (Graphics2D) g;
@@ -209,6 +261,39 @@ public class GameView extends JFrame {
             g2d.drawString(hint, 20 + (Game.SIDEBAR_X - 40 - fm.stringWidth(hint)) / 2,
                     WINDOW_HEIGHT - 46 + 23);
         }
+    }
+
+    // Exit button — small pill in the top-left corner of the play area
+    private void drawExitButton(Graphics2D g2d) {
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        int x = Game.EXIT_BTN_X, y = Game.EXIT_BTN_Y;
+        int w = Game.EXIT_BTN_W, h = Game.EXIT_BTN_H;
+
+        // Shadow
+        g2d.setColor(new Color(0, 0, 0, 70));
+        g2d.fillRoundRect(x + 2, y + 2, w, h, 10, 10);
+
+        // Button body
+        g2d.setColor(new Color(180, 50, 50));
+        g2d.fillRoundRect(x, y, w, h, 10, 10);
+
+        // Highlight
+        g2d.setColor(new Color(255, 255, 255, 50));
+        g2d.fillRoundRect(x, y, w, h / 2, 10, 10);
+
+        // Border
+        g2d.setColor(new Color(255, 255, 255, 90));
+        g2d.setStroke(new BasicStroke(1.5f));
+        g2d.drawRoundRect(x, y, w, h, 10, 10);
+        g2d.setStroke(new BasicStroke(1));
+
+        // Label
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Arial", Font.BOLD, 12));
+        FontMetrics fm = g2d.getFontMetrics();
+        String lbl = "\u2190 Menu";
+        g2d.drawString(lbl, x + (w - fm.stringWidth(lbl)) / 2,
+                y + h / 2 + fm.getAscent() / 2 - 1);
     }
 
     // Sidebar
@@ -470,7 +555,7 @@ public class GameView extends JFrame {
         g2d.setColor(new Color(200, 180, 160));
         g2d.setFont(new Font("Arial", Font.BOLD, 32));
         fm = g2d.getFontMetrics();
-        String outOf = "out of 100  (need 95 to win)";
+        String outOf = "out of 100  (need "+ Game.MIN_WIN + " to win)";
         g2d.drawString(outOf, (WINDOW_WIDTH - fm.stringWidth(outOf)) / 2, 475);
 
         // Encouragement line
@@ -516,3 +601,5 @@ public class GameView extends JFrame {
                 RETRY_BTN_Y + RETRY_BTN_H / 2 + fm.getAscent() / 2 - 2);
     }
 }
+
+

@@ -98,9 +98,7 @@ public class NoteBlock extends Obstacle{
     }
 
     public double getBounce() {
-        int semitone = Tune.toSemitone(note);
-        semitone = Math.max(0, Math.min(83, semitone));
-        return 0.45 + (semitone / 83.0) * 0.70;
+        return 0.75;
     }
 
     public Note getNote() { return note; }
@@ -110,3 +108,5 @@ public class NoteBlock extends Obstacle{
         this.inPlay = inPlay;
     }
 }
+
+
