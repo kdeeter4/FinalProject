@@ -4,3 +4,4 @@ public interface NoteBlockListener {
     // Called when a noteblock is hit
     void onNoteBlockHit(NoteBlock block);
 }
+
