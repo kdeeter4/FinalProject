@@ -135,16 +135,28 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
     // Checks if it is playing
     public boolean isPreviewPlaying() { return previewPlaying; }
 
-    // Mouse code
+    /**
+     * Handles a mouse press event anywhere in the game window.
+     * Routes the click to the appropriate handler based on the current game state,
+     * checking buttons, draggable blocks, and palette items as needed.
+     *
+     * @param e the MouseEvent from the Swing listener
+     */
     @Override
     public void mousePressed(MouseEvent e) {
+        // Convert raw screen coordinates to logical game coordinates (handles scaling)
         int x = toLogical(e.getX()), y = toLogical(e.getY());
 
-        // Setup and live play share the same sidebar/palette interactions
+        // =====================================================================
+        // IN-LEVEL STATES (setup mode OR live play for any of the 3 levels)
+        // Both share the same sidebar/button interactions, so they're handled together.
+        // =====================================================================
         if (state == STATE_LEVEL1_SETUP || state == STATE_LEVEL1
                 || state == STATE_LEVEL2_SETUP || state == STATE_LEVEL2
                 || state == STATE_LEVEL3_SETUP || state == STATE_LEVEL3) {
-            // Exit-to-menu button (always available during a level)
+
+            // --- EXIT BUTTON (always shown during a level) ---
+            // Returns to the main menu regardless of whether it's setup or live play.
             if (x >= EXIT_BTN_X && x <= EXIT_BTN_X + EXIT_BTN_W
                     && y >= EXIT_BTN_Y && y <= EXIT_BTN_Y + EXIT_BTN_H) {
                 state = STATE_MENU;
@@ -152,7 +164,8 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
                 return;
             }
 
-            // Clear-board button (only in setup)
+            // --- CLEAR BOARD BUTTON (setup only) ---
+            // Wipes all placed NoteBlocks from the level so the player can start over.
             if (isSetupMode()) {
                 int clearY = getClearBtnY();
                 if (x >= CLEAR_BTN_X && x <= CLEAR_BTN_X + CLEAR_BTN_W
@@ -162,7 +175,8 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
                 }
             }
 
-            // Preview-tune button (only in setup)
+            // --- PREVIEW TUNE BUTTON (setup only) ---
+            // Plays back the target melody so the player knows what tune to replicate.
             if (isSetupMode()) {
                 int previewY = getPreviewBtnY();
                 if (x >= CLEAR_BTN_X && x <= CLEAR_BTN_X + CLEAR_BTN_W
@@ -172,11 +186,13 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
                 }
             }
 
-            // Play button (only visible in setup mode)
+            // --- PLAY BUTTON (setup only) ---
+            // Transitions from setup to live play for the active level.
             if (isSetupMode()) {
                 int playY = getPlayBtnY();
                 if (x >= CLEAR_BTN_X && x <= CLEAR_BTN_X + CLEAR_BTN_W
                         && y >= playY && y <= playY + CLEAR_BTN_H) {
+                    // Advance to the correct live-play state for each level
                     if (state == STATE_LEVEL2_SETUP) state = STATE_LEVEL2;
                     else if (state == STATE_LEVEL3_SETUP) state = STATE_LEVEL3;
                     else state = STATE_LEVEL1;
@@ -185,13 +201,15 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
                 }
             }
 
-            // Restart button (only visible while ball is live)
+            // --- RESTART BUTTON (live play only) ---
+            // Resets the ball and tune recorder, then returns to setup mode for the active level.
             if (state == STATE_LEVEL1 || state == STATE_LEVEL2 || state == STATE_LEVEL3) {
                 int restartY = getRestartBtnY();
                 if (x >= CLEAR_BTN_X && x <= CLEAR_BTN_X + CLEAR_BTN_W
                         && y >= restartY && y <= restartY + CLEAR_BTN_H) {
-                    b.reset();
-                    tuneRecorder.reset();
+                    b.reset();              // reset ball position and velocity
+                    tuneRecorder.reset();  // clear any notes the ball has already hit
+                    // Go back to the corresponding setup state
                     if (state == STATE_LEVEL2) state = STATE_LEVEL2_SETUP;
                     else if (state == STATE_LEVEL3) state = STATE_LEVEL3_SETUP;
                     else state = STATE_LEVEL1_SETUP;
@@ -200,26 +218,17 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
                 }
             }
 
-            // Pick up an already-placed NoteBlock (only in setup)
+            // --- PICK UP AN ALREADY-PLACED NOTE BLOCK (setup only) ---
+            // Iterates placed blocks in reverse order (topmost block first) so the
+            // player picks up the block they can visually see on top.
             if (isSetupMode()) {
                 List<Obstacle> placed = currentLevel.getPlacedBlocks();
                 for (int i = placed.size() - 1; i >= 0; i--) {
                     Obstacle o = placed.get(i);
                     if (o instanceof NoteBlock && o.getBounds().contains(x, y)) {
                         NoteBlock nb = (NoteBlock) o;
-                        currentLevel.removePlacedBlock(i);   // see note below
-                        dragging = new NoteBlock(nb.getNote(), nb.getDurationMs(), x - 25, y - 25);
-                        dragOffsetX = 25;
-                        dragOffsetY = 25;
-                        return;
-                    }
-                }
-            }
-
-            // Palette pick-up (only in setup — can't rearrange mid-flight)
-            if (isSetupMode()) {
-                for (NoteBlock nb : palette) {
-                    if (nb.getBounds().contains(x, y)) {
+                        currentLevel.removePlacedBlock(i); // remove from the board so it follows the cursor
+                        // Create a drag copy centered on the cursor (offset = half block size = 25px)
                         dragging    = new NoteBlock(nb.getNote(), nb.getDurationMs(), x - 25, y - 25);
                         dragOffsetX = 25;
                         dragOffsetY = 25;
@@ -227,48 +236,87 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
                     }
                 }
             }
-            // X button
+
+            // --- PICK UP FROM PALETTE (setup only) ---
+            // If the click didn't hit any placed block, check the sidebar palette
+            // so the player can drag a fresh NoteBlock onto the board.
+            if (isSetupMode()) {
+                for (NoteBlock nb : palette) {
+                    if (nb.getBounds().contains(x, y)) {
+                        // Create a new drag copy of the palette block (the palette itself is unchanged)
+                        dragging    = new NoteBlock(nb.getNote(), nb.getDurationMs(), x - 25, y - 25);
+                        dragOffsetX = 25;
+                        dragOffsetY = 25;
+                        return;
+                    }
+                }
+            }
+
+            // =====================================================================
+            // INFO / HELP SCREEN — only button is the close (X) to return to menu
+            // =====================================================================
         } else if (state == STATE_INFO) {
             if (x >= GameView.CLOSE_BTN_X && x <= GameView.CLOSE_BTN_X + GameView.CLOSE_BTN_SIZE
                     && y >= GameView.CLOSE_BTN_Y && y <= GameView.CLOSE_BTN_Y + GameView.CLOSE_BTN_SIZE) {
                 state = STATE_MENU;
                 window.repaint();
             }
-            // Help button + Level 1 button
+
+            // =====================================================================
+            // MAIN MENU — help button (circular), and level-select buttons
+            // =====================================================================
         } else if (state == STATE_MENU) {
-            int ddx = x - GameView.HELP_BTN_CX, ddy = y - GameView.HELP_BTN_CY;
-            if (Math.sqrt(ddx*ddx + ddy*ddy) <= GameView.HELP_BTN_RADIUS) {
-                state = STATE_INFO; window.repaint(); return;
+
+            // --- HELP BUTTON (circular hit-test using distance from center) ---
+            int ddx = x - GameView.HELP_BTN_CX;
+            int ddy = y - GameView.HELP_BTN_CY;
+            if (Math.sqrt(ddx * ddx + ddy * ddy) <= GameView.HELP_BTN_RADIUS) {
+                state = STATE_INFO;
+                window.repaint();
+                return;
             }
+
+            // --- LEVEL 1 BUTTON ---
             if (x >= GameView.LEVEL1_X && x <= GameView.LEVEL1_X + GameView.LEVEL1_W
                     && y >= GameView.LEVEL1_Y && y <= GameView.LEVEL1_Y + GameView.LEVEL1_H) {
                 loadLevel(Level.makeLevel1());
                 state = STATE_LEVEL1_SETUP;
                 window.repaint();
             }
+
+            // --- LEVEL 2 BUTTON ---
             if (x >= GameView.LEVEL2_X && x <= GameView.LEVEL2_X + GameView.LEVEL2_W
                     && y >= GameView.LEVEL2_Y && y <= GameView.LEVEL2_Y + GameView.LEVEL2_H) {
                 loadLevel(Level.makeLevel2());
                 state = STATE_LEVEL2_SETUP;
                 window.repaint();
             }
+
+            // --- LEVEL 3 BUTTON ---
             if (x >= GameView.LEVEL3_X && x <= GameView.LEVEL3_X + GameView.LEVEL3_W
                     && y >= GameView.LEVEL3_Y && y <= GameView.LEVEL3_Y + GameView.LEVEL3_H) {
                 loadLevel(Level.makeLevel3());
                 state = STATE_LEVEL3_SETUP;
                 window.repaint();
             }
-            // Retry button
+
+            // =====================================================================
+            // SCORE SCREEN — retry re-loads the same level back into setup mode
+            // =====================================================================
         } else if (state == STATE_SCORE_SCREEN) {
             if (x >= GameView.RETRY_BTN_X && x <= GameView.RETRY_BTN_X + GameView.RETRY_BTN_W
                     && y >= GameView.RETRY_BTN_Y && y <= GameView.RETRY_BTN_Y + GameView.RETRY_BTN_H) {
-                retryLevel();
+                retryLevel(); // re-uses stored level reference to restart without picking a new level
             }
-            // Return button
+
+            // =====================================================================
+            // WIN SCREEN — return button sends the player back to the main menu
+            // =====================================================================
         } else if (state == STATE_WIN) {
             if (x >= GameView.RETRY_BTN_X && x <= GameView.RETRY_BTN_X + GameView.RETRY_BTN_W
                     && y >= GameView.RETRY_BTN_Y && y <= GameView.RETRY_BTN_Y + GameView.RETRY_BTN_H) {
-                state = STATE_MENU; window.repaint();
+                state = STATE_MENU;
+                window.repaint();
             }
         }
     }
@@ -296,7 +344,7 @@ public class Game implements MouseListener, MouseMotionListener, ActionListener,
         }
     }
 
-    // Game loop
+    // Game loop=
     @Override
     public void actionPerformed(ActionEvent e) {
         boolean ballLive = state == STATE_LEVEL1 || state == STATE_LEVEL2 || state == STATE_LEVEL3;

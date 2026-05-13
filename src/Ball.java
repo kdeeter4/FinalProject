@@ -43,95 +43,129 @@ public class Ball {
     }
 
 
-    // Every tick where the ball moves, takes in level to move and see when bounce occurs
+    /**
+     * Advances the ball's physics by one game tick.
+     * Handles gravity, movement, and collision with obstacles.
+     *
+     * @param level the current level containing obstacles to collide with
+     */
     public void tickStep(Level level) {
-        // Gravity applies
+        // --- GRAVITY ---
+        // Accelerate the ball downward each tick (simulates gravity)
         dy += GRAVITY;
 
-        // find next x and y for good bounce collision code
+        // --- MOVEMENT ---
+        // Calculate where the ball will be after this tick
         double nextX = xpos + dx;
         double nextY = ypos + dy;
 
-        // No wall/floor/ceiling bouncing — ball passes through edges.
-        // Game checks for out-of-bounds and resets the ball.
+        // No bouncing off walls, floors, or ceilings.
+        // Out-of-bounds is handled elsewhere — the ball just moves freely.
         xpos = nextX;
         ypos = nextY;
 
-        // Collision with obstacles
+        // --- OBSTACLE COLLISION ---
         if (level != null) {
+            // Compute the ball's center point and radius for circular collision math
             double ballCenterX = xpos + SIZE / 2.0;
             double ballCenterY = ypos + SIZE / 2.0;
             double ballRadius = SIZE / 2.0;
 
-            Rectangle ballNow = new Rectangle((int) xpos, (int) (ypos - dy), SIZE, SIZE);
-            Rectangle ballNext = new Rectangle((int) xpos, (int) ypos, SIZE, SIZE);
+            // Two bounding boxes: where the ball WAS (before this tick) and where it IS now.
+            // Used to detect if the ball "crossed through" an obstacle's top edge.
+            Rectangle ballNow  = new Rectangle((int) xpos, (int) (ypos - dy), SIZE, SIZE); // previous position
+            Rectangle ballNext = new Rectangle((int) xpos, (int) ypos, SIZE, SIZE);         // current position
 
             for (Obstacle obstacle : level.getObstacles()) {
+                // Use the NoteBlock's custom bounce value if applicable, otherwise use the default
                 double bounce = obstacle instanceof NoteBlock
                         ? ((NoteBlock) obstacle).getBounce()
                         : BOUNCE;
 
+                // ---- CIRCULAR OBSTACLE ----
                 if (obstacle.isCircle()) {
-                    double cx = obstacle.getCenterX();
-                    double cy = obstacle.getCenterY();
-                    double r = obstacle.getRadius();
+                    double cx = obstacle.getCenterX(); // circle center X
+                    double cy = obstacle.getCenterY(); // circle center Y
+                    double r  = obstacle.getRadius();  // circle radius
 
-                    double nx = ballCenterX - cx;
-                    double ny = ballCenterY - cy;
-                    double dist = Math.sqrt(nx * nx + ny * ny);
+                    // Vector from circle center to ball center
+                    double nx   = ballCenterX - cx;
+                    double ny   = ballCenterY - cy;
+                    double dist = Math.sqrt(nx * nx + ny * ny); // actual distance between centers
 
+                    // Check if the ball is overlapping the circle
                     if (dist <= ballRadius + r) {
+
+                        // Normalize the collision normal vector (unit vector pointing away from circle)
                         if (dist == 0) {
+                            // Exact overlap — default to pushing straight up to avoid divide-by-zero
                             nx = 0;
                             ny = -1;
                             dist = 1;
                         } else {
-                            nx /= dist;
-                            ny /= dist;
+                            nx /= dist; // normalize X component
+                            ny /= dist; // normalize Y component
                         }
 
+                        // Reflect the velocity vector across the collision normal (standard reflection formula)
+                        // dot = how much of the velocity is moving "into" the surface
                         double dot = dx * nx + dy * ny;
-                        dx = (dx - 2 * dot * nx) * bounce;
-                        dy = (dy - 2 * dot * ny) * bounce;
+                        dx = (dx - 2 * dot * nx) * bounce; // reflected + dampened X velocity
+                        dy = (dy - 2 * dot * ny) * bounce; // reflected + dampened Y velocity
 
+                        // Push the ball out of the circle so they're just touching, not overlapping
                         double targetDist = ballRadius + r;
-                        double pushOut = targetDist - dist;
+                        double pushOut    = targetDist - dist;
                         xpos += nx * pushOut;
                         ypos += ny * pushOut;
 
+                        // If velocity is very small, stop the ball completely (prevents micro-jitter)
                         if (Math.abs(dx) < STOP_SPEED) dx = 0;
                         if (Math.abs(dy) < STOP_SPEED) dy = 0;
 
+                        // Notify the note listener if this is a NoteBlock (triggers a sound/event)
                         if (obstacle instanceof NoteBlock && noteListener != null) {
                             noteListener.onNoteBlockHit((NoteBlock) obstacle);
                         }
 
-                        break;
+                        break; // only collide with one obstacle per tick
                     }
+
+                    // ---- RECTANGULAR OBSTACLE (only when falling downward) ----
                 } else if (dy >= 0) {
                     Rectangle r = obstacle.getBounds();
 
-                    boolean wasAbove = ballNow.y + ballNow.height <= r.y;
+                    // Check that the ball was ABOVE the obstacle last tick...
+                    boolean wasAbove   = ballNow.y  + ballNow.height  <= r.y;
+                    // ...and has now reached or crossed the obstacle's top edge...
                     boolean crossedTop = ballNext.y + ballNext.height >= r.y;
-                    boolean overlapsX = ballNext.x + ballNext.width > r.x && ballNext.x < r.x + r.width;
+                    // ...and is horizontally aligned with the obstacle
+                    boolean overlapsX  = ballNext.x + ballNext.width  >  r.x
+                            && ballNext.x                   <  r.x + r.width;
 
+                    // Only bounce if all three conditions are true (ball landed on top)
                     if (wasAbove && crossedTop && overlapsX) {
+                        // How far the ball sank into the obstacle this tick
                         double bottomAfterMove = ypos + SIZE;
-                        double overshoot = bottomAfterMove - r.y;
+                        double overshoot       = bottomAfterMove - r.y;
 
+                        // Reverse and dampen vertical velocity (bounce!)
                         dy = -dy * bounce;
+                        // Reposition the ball just above the surface, offset by the bounce energy
                         ypos = r.y - SIZE - overshoot * bounce;
 
+                        // If bouncing very weakly, just rest the ball on the surface
                         if (Math.abs(dy) < STOP_SPEED) {
-                            dy = 0;
+                            dy   = 0;
                             ypos = r.y - SIZE;
                         }
 
+                        // Notify the note listener if this is a NoteBlock
                         if (obstacle instanceof NoteBlock && noteListener != null) {
                             noteListener.onNoteBlockHit((NoteBlock) obstacle);
                         }
 
-                        break;
+                        break; // only collide with one obstacle per tick
                     }
                 }
             }
