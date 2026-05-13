@@ -68,6 +68,8 @@ public class Tune {
         int maxLen = Math.max(a.length, b.length);
 
         // We convert each note to a semitone index so that nearby notes score better than distant ones.
+        // Score note the most because having the right notes is what really makes a tune sound like what
+        // it should be, gap between notes is also very important
         double pitchTotal = 0;
         for (int i = 0; i < minLen; i++) {
             int semiA = Tune.toSemitone(a[i].note);

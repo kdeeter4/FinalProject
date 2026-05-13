@@ -18,15 +18,15 @@ public class Level {
 
     public Level(int levelNumber, Color backgroundColor, Rectangle target, Tune targetTune,
                  int ballSpawnX, int ballSpawnY, List paletteNotes) {
-        this.levelNumber = levelNumber;
-        this.backgroundColor = backgroundColor;
-        this.target = target;
-        this.targetTune = targetTune;
-        this.ballSpawnX = ballSpawnX;
+        this.levelNumber = levelNumber; // Level 1, 2, etc
+        this.backgroundColor = backgroundColor; // background color
+        this.target = target; // Green rectangle target
+        this.targetTune = targetTune; // Tune user wants to make from bounces
+        this.ballSpawnX = ballSpawnX; // Ball spawn coordinates
         this.ballSpawnY = ballSpawnY;
-        this.paletteNotes = new ArrayList<>(paletteNotes);
-        this.fixedObstacles = new ArrayList<>();
-        this.placedBlocks = new ArrayList<>();
+        this.paletteNotes = new ArrayList<>(paletteNotes); // Notes available in palette
+        this.fixedObstacles = new ArrayList<>(); // Rectangle bouncing obstacles
+        this.placedBlocks = new ArrayList<>();  // Placed noteblocks. edited in play
     }
 
     // Factory for Level 1, using your layout + target tune
@@ -160,14 +160,6 @@ public class Level {
 
     public void clearPlacedBlocks() {
         placedBlocks.clear();
-    }
-
-    public void resetPlacedBlocks() {
-        clearPlacedBlocks();
-    }
-
-    public List<Obstacle> getFixedObstacles() {
-        return new ArrayList<>(fixedObstacles);
     }
 
     public List<Obstacle> getPlacedBlocks() {
